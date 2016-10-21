@@ -82,3 +82,15 @@ class GoodnessOfFit(object):
             gof[dataset.name] = np.sum(idx) / float(n_iterations)
 
         return gof, data_frame, like_data_frame
+
+
+class CrossValidation(object):
+    def __init__(self, jl_instance):
+
+        pass
+
+    def _go(self):
+
+        for data in self._data_list:
+
+            pass
