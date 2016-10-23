@@ -1278,6 +1278,46 @@ class OGIPLike(PluginPrototype):
 
         self._rsp.plot_matrix()
 
+    def toggle_channel(self, channel, set='on'):
+
+        assert channel < self._pha.n_channels, 'Channel selection is too large'
+
+        if set == 'on':
+
+            self._mask[channel] = True
+
+        elif set == 'off':
+
+            self._mask[channel] = False
+
+        self._apply_mask_to_original_vectors()
+
+    def generate_cross_validation_sets(self):
+        """
+        Generates a set of OGIP plugins that have LOO cross validation applied to them
+        based off the original data selection.
+
+        :return: list of original on channels, list of cross validation OGIPLike instances
+        """
+
+        original_on_channels = np.where(self._mask)
+
+        # Now we want to iterate through the on channels and create new ogip
+        # plugins with those channels turned off
+
+        new_ogips = []
+
+        for channel in original_on_channels:
+
+            new_ogip = copy.copy(self)
+
+            new_ogip.toggle_channel(channel, set='off')
+
+            new_ogips.append(new_ogip)
+
+        return original_on_channels, new_ogips
+
+
 def channel_plot(ax, chan_min, chan_max, counts, **kwargs):
     chans = np.array(zip(chan_min, chan_max))
     width = chan_max - chan_min
