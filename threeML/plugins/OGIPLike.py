@@ -351,7 +351,11 @@ class OGIPLike(PluginPrototype):
 
             self._mask = self._quality_to_mask()
 
+        elif 'none' in args:
 
+            assert len(args) == 1, "If you specify 'none', you cannot specify more than one energy range."
+
+            self._mask[:] = False
 
 
 
