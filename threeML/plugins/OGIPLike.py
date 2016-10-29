@@ -308,126 +308,144 @@ class OGIPLike(PluginPrototype):
         assert self._rebinner is None, "You cannot select active measurements if you have a rebinning active. " \
                                        "Remove it first with remove_rebinning"
 
-        if 'use_quality' in kwargs:
+        if 'invert' in args:
 
-            use_quality = kwargs.pop('use_quality')
+            assert len(args) == 1, "If you specify 'invert', you cannot specify more than one energy range."
 
-        else:
+            self._mask = ~self._mask
 
+            # Obviously we will not care in this case if we select BAD (5) channels
             use_quality = False
 
-        if use_quality:
-
-            # Start with quality mask. This means that channels
-            # marked good by quality will be used unless exluded in the arguments
-            # and channels marked bad by quality will be excluded unless included
-            # by the arguments
-
-            self._mask = self._quality_to_mask()
 
         else:
 
-            # otherwise, we will start out with all channels deselected
-            # and turn the on/off by the arguments
+            if 'use_quality' in kwargs:
 
-            self._mask = np.zeros(self._pha.n_channels, dtype=bool)
+                use_quality = kwargs.pop('use_quality')
 
-        if 'all' in args:
+            else:
 
-            # Just make sure than no further selections have been made.
+                use_quality = False
 
-            assert len(args) == 1, "If you specify 'all', you cannot specify more than one energy range."
+            if use_quality:
 
-            # Convert the mask to all True (we use all channels)
-            self._mask[:] = True
+                # Start with quality mask. This means that channels
+                # marked good by quality will be used unless exluded in the arguments
+                # and channels marked bad by quality will be excluded unless included
+                # by the arguments
+
+                self._mask = self._quality_to_mask()
+
+            else:
+
+                # otherwise, we will start out with all channels deselected
+                # and turn the on/off by the arguments
+
+                self._mask = np.zeros(self._pha.n_channels, dtype=bool)
+
+            if 'all' in args:
+
+                # Just make sure than no further selections have been made.
+
+                assert len(args) == 1, "If you specify 'all', you cannot specify more than one energy range."
+
+                # Convert the mask to all True (we use all channels)
+                self._mask[:] = True
 
 
 
-        elif 'reset' in args:
+            elif 'reset' in args:
 
-            # Convert the to native PHA masking specified in quality
+                # Convert the to native PHA masking specified in quality
 
-            assert len(args) == 1, "If you specify 'reset', you cannot specify more than one energy range."
+                assert len(args) == 1, "If you specify 'reset', you cannot specify more than one energy range."
 
-            self._mask = self._quality_to_mask()
+                self._mask = self._quality_to_mask()
 
-        elif 'none' in args:
+            elif 'none' in args:
 
-            assert len(args) == 1, "If you specify 'none', you cannot specify more than one energy range."
+                assert len(args) == 1, "If you specify 'none', you cannot specify more than one energy range."
 
-            self._mask[:] = False
-
-
+                self._mask[:] = False
 
 
-        else:
 
-            for arg in args:
 
-                selections = arg.replace(" ", "").split("-")
 
-                # We need to find out if it is a channel or and energy being requested
 
-                idx = np.empty(2, dtype=int)
-                for i, s in enumerate(selections):
 
-                    if s[0].lower() == 'c':
 
-                        assert int(s[1:]) <= self._pha.n_channels, "%s is larger than the number of channels: %d" % (
-                            s, self._pha.n_channels)
-                        idx[i] = int(s[1:])
+            else:
 
-                    else:
+                for arg in args:
 
-                        idx[i] = self._rsp.energy_to_channel(float(s))
+                    selections = arg.replace(" ", "").split("-")
 
-                assert idx[0] < idx[
-                    1], "The channel and energy selection (%s) are out of order and translates to %s-%s" % (
-                    selections, idx[0], idx[1])
+                    # We need to find out if it is a channel or and energy being requested
 
-                # we do the opposite of the exclude command!
-                self._mask[idx[0]:idx[1] + 1] = True
+                    idx = np.empty(2, dtype=int)
+                    for i, s in enumerate(selections):
 
-                if self._verbose:
-                    print("Range %s translates to channels %s-%s" % (arg, idx[0], idx[1]))
+                        if s[0].lower() == 'c':
 
-        # If you are just excluding channels
-        if len(args) == 0:
+                            assert int(
+                                    s[1:]) <= self._pha.n_channels, "%s is larger than the number of channels: %d" % (
+                                s, self._pha.n_channels)
+                            idx[i] = int(s[1:])
 
-            self._mask[:] = True
+                        else:
 
-        if 'exclude' in kwargs:
+                            idx[i] = self._rsp.energy_to_channel(float(s))
 
-            exclude = list(kwargs.pop('exclude'))
+                    assert idx[0] < idx[
+                        1], "The channel and energy selection (%s) are out of order and translates to %s-%s" % (
+                        selections, idx[0], idx[1])
 
-            for arg in exclude:
+                    # we do the opposite of the exclude command!
+                    self._mask[idx[0]:idx[1] + 1] = True
 
-                selections = arg.replace(" ", "").split("-")
+                    if self._verbose:
+                        print("Range %s translates to channels %s-%s" % (arg, idx[0], idx[1]))
 
-                # We need to find out if it is a channel or and energy being requested
+            # If you are just excluding channels
+            if len(args) == 0:
 
-                idx = np.empty(2, dtype=int)
-                for i, s in enumerate(selections):
+                self._mask[:] = True
 
-                    if s[0].lower() == 'c':
+            if 'exclude' in kwargs:
 
-                        assert int(s[1:]) <= self._pha.n_channels, "%s is larger than the number of channels: %d" % (
-                            s, self._pha.n_channels)
-                        idx[i] = int(s[1:])
+                exclude = list(kwargs.pop('exclude'))
 
-                    else:
+                for arg in exclude:
 
-                        idx[i] = self._rsp.energy_to_channel(float(s))
+                    selections = arg.replace(" ", "").split("-")
 
-                assert idx[0] < idx[
-                    1], "The channel and energy selection (%s) are out of order and translate to %s-%s" % (
-                    selections, idx[0], idx[1])
+                    # We need to find out if it is a channel or and energy being requested
 
-                # we do the opposite of the exclude command!
-                self._mask[idx[0]:idx[1] + 1] = False
+                    idx = np.empty(2, dtype=int)
+                    for i, s in enumerate(selections):
 
-                if self._verbose:
-                    print("Range %s translates to excluding channels %s-%s" % (arg, idx[0], idx[1]))
+                        if s[0].lower() == 'c':
+
+                            assert int(
+                                    s[1:]) <= self._pha.n_channels, "%s is larger than the number of channels: %d" % (
+                                s, self._pha.n_channels)
+                            idx[i] = int(s[1:])
+
+                        else:
+
+                            idx[i] = self._rsp.energy_to_channel(float(s))
+
+                    assert idx[0] < idx[
+                        1], "The channel and energy selection (%s) are out of order and translate to %s-%s" % (
+                        selections, idx[0], idx[1])
+
+                    # we do the opposite of the exclude command!
+                    self._mask[idx[0]:idx[1] + 1] = False
+
+                    if self._verbose:
+                        print("Range %s translates to excluding channels %s-%s" % (arg, idx[0], idx[1]))
 
         if self._verbose:
             print("Now using %s channels out of %s" % (np.sum(self._mask), self._pha.n_channels))
