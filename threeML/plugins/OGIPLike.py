@@ -1311,7 +1311,7 @@ class OGIPLike(PluginPrototype):
         :return: list of original on channels, list of cross validation OGIPLike instances
         """
 
-        original_on_channels = np.where(self._mask)
+        original_on_channels = np.where(self._mask)[0]
 
         # Now we want to iterate through the on channels and create new ogip
         # plugins with those channels turned off
@@ -1320,7 +1320,10 @@ class OGIPLike(PluginPrototype):
 
         for channel in original_on_channels:
 
-            new_ogip = copy.copy(self)
+            new_ogip = copy.deepcopy(self)
+
+
+
 
             new_ogip.toggle_channel(channel, set='off')
 
