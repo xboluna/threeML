@@ -1337,7 +1337,7 @@ class OGIPLike(PluginPrototype):
         :return: list of original on channels, list of cross validation OGIPLike instances
         """
 
-        original_on_channels = np.where(self._mask)[0]
+        original_off_channels = np.where(~self._mask)[0]
 
         # Now we want to iterate through the on channels and create new ogip
         # plugins with those channels turned off
@@ -1351,11 +1351,13 @@ class OGIPLike(PluginPrototype):
 
 
 
+
+
             new_ogip.toggle_channel(channel, set='off')
 
             new_ogips.append(new_ogip)
 
-        return original_on_channels, new_ogips
+        return original_off_channels, new_ogips
 
 
 def channel_plot(ax, chan_min, chan_max, counts, **kwargs):

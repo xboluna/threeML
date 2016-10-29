@@ -94,7 +94,7 @@ class CrossValidation(object):
 
         self._n_data_sets = len(self._jl_instance.data_list.values())
 
-        self._active_channels = []
+
 
         self._cross_validation_sets = []
 
@@ -102,6 +102,7 @@ class CrossValidation(object):
         # worker ID to the proper data set
 
         self._id_dict = {}
+        self._off_dict ={}
 
         id = 0
         for key in self._jl_instance.data_list.keys():
@@ -110,7 +111,7 @@ class CrossValidation(object):
 
             tmp1, tmp2 = self._jl_instance.data_list[key].generate_cross_validation_sets()
 
-            self._active_channels.extend(tmp1)
+
             self._cross_validation_sets.extend(tmp2)
 
             for i in range(self._jl_instance.data_list[key].n_data_points):
@@ -120,14 +121,99 @@ class CrossValidation(object):
                 id += 1
 
 
+                self._off_dict[id] = tmp1
 
 
 
-                # self._reference_like = like_data_frame['-log(likelihood)']
+            self._n_iterations = id
+
+
 
     def get_cross_validation_data(self,id):
-        pass
 
-    def go(self):
 
-        pass
+        data_set = []
+
+        # Start out by adding just the data set for this id
+        # that has it's channel deselected
+        data_set.append(self._cross_validation_sets[id])
+
+        # Now append the other data sets
+        for key in self._id_dict[id]:
+
+            data_set.append( self._jl_instance.data_list[key] )
+
+
+        new_data_list = DataList(*data_set)
+
+        return new_data_list
+
+
+    def get_model(self, id):
+
+        # Make a copy of the best fit model, so that we don't touch the original model during the fit, and we
+        # also always restart from the best fit (instead of the last iteration)
+
+        new_model = clone_model(self._jl_instance.likelihood_model)
+
+        return new_model
+
+
+
+
+
+
+    def go(self, continue_on_failure=False):
+
+        """
+        Compute goodness of fit by generating Monte Carlo datasets and fitting the current model on them. The fraction
+        of synthetic datasets which have a value for the likelihood larger or equal to the observed one is a measure
+        of the goodness of fit
+
+        :param continue_of_failure: whether to continue in the case a fit fails (False by default)
+        :return: tuple (goodness of fit, frame with all results, frame with all likelihood values)
+        """
+
+        # Create the joint likelihood set
+        jl_set = JointLikelihoodSet(self.get_cross_validation_data, self.get_model, self._n_iterations, iteration_name='simulation')
+
+        # Use the same minimizer as in the joint likelihood object
+
+        minimizer_name, algorithm = self._jl_instance.minimizer_in_use
+        jl_set.set_minimizer(minimizer_name, algorithm)
+
+        # Run the set
+        data_frame, like_data_frame = jl_set.go(continue_on_failure=continue_on_failure)
+
+
+        # Now we need to go back through the data sets, and invert the selection
+        # to compute the log like of the single data point left out
+        # all other data sets should be zero, so we ignore them
+
+
+        loo_likes = []
+
+
+        for id, data in enumerate(self._cross_validation_sets):
+
+
+            data.set_active_measurements('invert')
+
+            for channel in self._off_dict[id]:
+
+
+                data.toggle_channel()
+
+
+
+            loo_likes.append(data.get_log_like())
+
+
+
+        return loo_likes
+
+
+
+
+
+
