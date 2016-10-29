@@ -85,12 +85,49 @@ class GoodnessOfFit(object):
 
 
 class CrossValidation(object):
-    def __init__(self, jl_instance):
+    def __init__(self, joint_likelihood_instance):
 
+        self._jl_instance = joint_likelihood_instance
+
+        # Restore best fit and store the reference value for the likelihood
+        self._jl_instance.restore_best_fit()
+
+        self._n_data_sets = len(self._jl_instance.data_list.values())
+
+        self._active_channels = []
+
+        self._cross_validation_sets = []
+
+        # We need to build a dictionary that gives points from
+        # worker ID to the proper data set
+
+        self._id_dict = {}
+
+        id = 0
+        for key in self._jl_instance.data_list.keys():
+
+            keys = filter(lambda x: x != key, self._jl_instance.data_list.keys())
+
+            tmp1, tmp2 = self._jl_instance.data_list[key].generate_cross_validation_sets()
+
+            self._active_channels.extend(tmp1)
+            self._cross_validation_sets.extend(tmp2)
+
+            for i in range(self._jl_instance.data_list[key].n_data_points):
+
+                self._id_dict[id] = keys
+
+                id += 1
+
+
+
+
+
+                # self._reference_like = like_data_frame['-log(likelihood)']
+
+    def get_cross_validation_data(self,id):
         pass
 
-    def _go(self):
+    def go(self):
 
-        for data in self._data_list:
-
-            pass
+        pass

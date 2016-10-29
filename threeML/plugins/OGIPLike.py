@@ -253,15 +253,23 @@ class OGIPLike(PluginPrototype):
 
         set_active_measurements('0.2-c10','c50-10')
 
-        * Use all measurements (i.e., reset to initial state):
+        * Use all measurements:
 
         Use 'all' to select all measurements, as in:
 
         set_active_measurements('all')
 
-        Use 'reset' to return to native PHA quality from file, as in:
+        * Use 'reset' to return to native PHA quality from file, as in:
 
         set_active_measurements('reset')
+
+        * Invert selections
+
+        Use 'invert' to switch the on/off status of all channels:
+
+        set_active_measurements('invert')
+
+
 
 
         * Exclude measurements:
