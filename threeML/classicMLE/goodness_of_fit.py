@@ -58,8 +58,8 @@ class GoodnessOfFit(object):
 
         # Use the same minimizer as in the joint likelihood object
 
-        minimizer_name, algorithm = self._jl_instance.minimizer_in_use
-        jl_set.set_minimizer(minimizer_name, algorithm)
+        minimizer_name, algorithm, callback = self._jl_instance.minimizer_in_use
+        jl_set.set_minimizer(minimizer_name, algorithm, callback=callback)
 
         # Run the set
         data_frame, like_data_frame = jl_set.go(continue_on_failure=continue_on_failure)
@@ -179,8 +179,8 @@ class CrossValidation(object):
 
         # Use the same minimizer as in the joint likelihood object
 
-        minimizer_name, algorithm = self._jl_instance.minimizer_in_use
-        jl_set.set_minimizer(minimizer_name, algorithm)
+        minimizer_name, algorithm, callback = self._jl_instance.minimizer_in_use
+        jl_set.set_minimizer(minimizer_name, algorithm, callback=callback)
 
         # Run the set
         data_frame, like_data_frame = jl_set.go(continue_on_failure=continue_on_failure)
@@ -201,8 +201,7 @@ class CrossValidation(object):
 
             for channel in self._off_dict[id]:
 
-
-                data.toggle_channel()
+                data.toggle_channel(channel, set='off')
 
 
 

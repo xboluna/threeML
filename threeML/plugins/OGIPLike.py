@@ -1344,7 +1344,7 @@ class OGIPLike(PluginPrototype):
 
         new_ogips = []
 
-        for channel in original_on_channels:
+        for channel in original_off_channels:
 
             new_ogip = copy.deepcopy(self)
 
