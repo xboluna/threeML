@@ -1339,12 +1339,14 @@ class OGIPLike(PluginPrototype):
 
         original_off_channels = np.where(~self._mask)[0]
 
+        original_on_channels = np.where(self._mask)[0]
+
         # Now we want to iterate through the on channels and create new ogip
         # plugins with those channels turned off
 
         new_ogips = []
 
-        for channel in original_off_channels:
+        for channel in original_on_channels:
 
             new_ogip = copy.deepcopy(self)
 

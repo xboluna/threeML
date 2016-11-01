@@ -117,13 +117,9 @@ class CrossValidation(object):
             for i in range(self._jl_instance.data_list[key].n_data_points):
 
                 self._id_dict[id] = keys
-
-                id += 1
-
-
                 self._off_dict[id] = tmp1
 
-
+                id += 1
 
             self._n_iterations = id
 
