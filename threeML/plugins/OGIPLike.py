@@ -3,14 +3,14 @@ import copy
 from contextlib import contextmanager
 import matplotlib.pyplot as plt
 import numpy as np
-from astromodels.parameter import Parameter
+from astromodels.core.parameter import Parameter
 from astromodels.functions.functions import Uniform_prior
 from astromodels.utils.valid_variable import is_valid_variable_name
 
 from threeML.io.file_utils import file_existing_and_readable, sanitize_filename
 from threeML.io.step_plot import step_plot
 from threeML.exceptions.custom_exceptions import custom_warnings
-from threeML.plugin_prototype import PluginPrototype
+from threeML.plugin_prototype import PluginPrototype, set_external_property
 from threeML.plugins.OGIP.likelihood_functions import poisson_log_likelihood_ideal_bkg
 from threeML.plugins.OGIP.likelihood_functions import poisson_observed_gaussian_background
 from threeML.plugins.OGIP.likelihood_functions import poisson_observed_poisson_background
@@ -18,6 +18,8 @@ from threeML.plugins.OGIP.pha import PHA
 from threeML.plugins.OGIP.response import Response
 from threeML.utils.binner import Rebinner
 from threeML.plugins.OGIP.pha import PHAContainer, PHAWrite
+from threeML.config.config import threeML_config
+
 
 __instrument_name = "All OGIP-compliant instruments"
 
@@ -935,6 +937,7 @@ class OGIPLike(PluginPrototype):
     observation_noise_model = property(_get_observation_noise_model, _set_observation_noise_model,
                                        doc="Sets/gets the noise model for the background spectrum")
 
+    @set_external_property
     def get_log_like(self):
 
         if self._observation_noise_model == 'poisson':
@@ -1202,6 +1205,7 @@ class OGIPLike(PluginPrototype):
 
         channel_plot(ax, energy_min, energy_max, observed_counts,
                      color='#377eb8', lw=1.5, alpha=1, label="Total")
+
         channel_plot(ax, energy_min, energy_max, background_counts,
                      color='#e41a1c', alpha=.8, label="Background")
 
@@ -1251,12 +1255,12 @@ class OGIPLike(PluginPrototype):
                          energy_min_unrebinned[non_used_mask],
                          energy_max_unrebinned[non_used_mask],
                          observed_rate_unrebinned[non_used_mask],
-                         color='#377eb8', lw=1.5, alpha=1)
+                         color=threeML_config['ogip']['counts color'], lw=1.5, alpha=1)
 
             channel_plot(ax, energy_min_unrebinned[non_used_mask],
                          energy_max_unrebinned[non_used_mask],
                          background_rate_unrebinned[non_used_mask],
-                         color='#e41a1c', alpha=.8)
+                         color=threeML_config['ogip']['background color'], alpha=.8)
 
             if plot_errors:
 
@@ -1272,7 +1276,7 @@ class OGIPLike(PluginPrototype):
                             alpha=.9,
                             capsize=0,
                             # label=data._name,
-                            color='#377eb8')
+                            color=threeML_config['ogip']['counts color'])
 
                 ax.errorbar(mean_chan_unrebinned[non_used_mask],
                             background_rate_unrebinned[non_used_mask] / energy_width_unrebinned[non_used_mask],
@@ -1284,7 +1288,7 @@ class OGIPLike(PluginPrototype):
                             alpha=.9,
                             capsize=0,
                             # label=data._name,
-                            color='#e41a1c')
+                            color=threeML_config['ogip']['background color'])
 
             excluded_channel_plot(ax, energy_min_unrebinned, energy_max_unrebinned,
                                   observed_rate_unrebinned,

@@ -3,7 +3,10 @@
 #A hack on the astropy Table class to make its output
 #more appealing, especially when in the Ipython notebook
 
+import pandas as pd
 import astropy.table
+from astromodels.utils.long_path_formatter import long_path_formatter
+
 
 class Table(astropy.table.Table):
     

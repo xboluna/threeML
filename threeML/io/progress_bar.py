@@ -25,7 +25,7 @@ else:
 
         has_widgets = True
 
-from IPython.display import display
+from threeML.io.rich_display import display
 
 from contextlib import contextmanager
 
@@ -190,9 +190,9 @@ class ProgressBarBase(object):
 
         raise NotImplementedError("Need to override this")
 
-    def increase(self):
+    def increase(self, n_steps=1):
 
-        self.animate(self._last_iteration + 1)
+        self.animate(self._last_iteration + n_steps)
 
     def finish(self):
 
@@ -288,6 +288,12 @@ class ProgressBarAscii(ProgressBarBase):
         sys.stdout.flush()
 
         return current_iteration
+
+    def finish(self):
+
+        super(ProgressBarAscii, self).finish()
+
+        sys.stdout.write("\n")
 
     def _generate_bar(self, current_iteration):
 

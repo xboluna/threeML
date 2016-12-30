@@ -43,6 +43,7 @@ setup(
               'threeML/minimizer',
               'threeML/plugins',
               'threeML/plugins/OGIP',
+              'threeML/plugins/Fermi_LAT',
               'threeML/classicMLE',
               'threeML/catalogs',
               'threeML/io',
@@ -73,9 +74,12 @@ setup(
 
     # Install configuration file in user home and in the package repository
 
-    data_files=[(os.path.join(os.path.expanduser('~'), '.threeML'), ["threeML/config/threeML_config.yml"]),
-                ('threeML/config', ["threeML/config/threeML_config.yml"])
-                ],
+    # data_files=[(os.path.join(os.path.expanduser('~'), '.threeML'), ["threeML/config/threeML_config.yml"]),
+    #             ('threeML/config', ["threeML/config/threeML_config.yml"])
+    #             ],
+
+    package_data={'threeML': ['data/*'],},
+    include_package_data=True,
 
     install_requires=[
         'numpy >= 1.6',
@@ -90,7 +94,8 @@ setup(
         'astromodels>=0.2.1',
         'corner>=1.0.2',
         'pandas',
-        'sympy'
+        'sympy',
+        'html2text'
     ])
 
 # Check for optional dependencies

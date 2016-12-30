@@ -1,9 +1,10 @@
 import numpy as np
-import numexpr
+import warnings
 
 from threeML.utils.stats_tools import Significance
+# from threeML.exceptions.custom_exceptions import custom_warnings
 from threeML.io.progress_bar import progress_bar
-
+from threeML.utils.bayesian_blocks import bayesian_blocks
 
 class NotEnoughData(RuntimeError):
     pass
@@ -256,9 +257,25 @@ class TemporalBinner(object):
 
     """
 
-    def __init__(self, arrival_times):
+    def __init__(self, arrival_times, tstart=None, tstop=None):
 
         self._arrival_times = arrival_times
+
+        if tstart is None:
+
+            self._tstart = self._arrival_times.min()
+
+        else:
+
+            self._tstart = float(tstart)
+
+        if tstop is None:
+
+            self._tstop = self._arrival_times.max()
+
+        else:
+
+            self._tstop = float(tstop)
 
     @property
     def bins(self):
@@ -295,53 +312,190 @@ class TemporalBinner(object):
 
         self._stops = []
 
-        total_counts = 0
+        # Switching to a fast search
+        # Idea inspired by Damien Begue
+
+        # these factors change the time steps
+        # in the fast search. should experiment
+        if sigma_level > 25:
+
+            increase_factor = 0.5
+            decrease_factor = 0.5
+
+        else:
+
+            increase_factor = 0.25
+            decrease_factor = 0.25
+
         current_start = self._arrival_times[0]
 
-        with progress_bar(len(self._arrival_times)) as p:
-            for i, time in enumerate(self._arrival_times):
+        # first we need to see if the interval provided has enough counts
 
-                total_counts += 1
+        _, counts = self._select_events(current_start, self._arrival_times[-1])
 
-                if total_counts < min_counts:
+        # if it does not, the flag for the big loop never gets set
+        end_all_search = not self._check_exceeds_sigma_interval(current_start,
+                                                                self._arrival_times[-1],
+                                                                counts,
+                                                                sigma_level,
+                                                                background_getter,
+                                                                background_error_getter)
 
-                    continue
+        # We will start the search at the mid point of the whole interval
 
-                else:
+        mid_point = 0.5 * (self._arrival_times[-1] + current_start)
 
-                    # first use the background function to know the number of background counts
-                    bkg = background_getter(current_start, time)
+        current_stop = mid_point
 
-                    sig = Significance(total_counts, bkg)
+        # initialize the fast search flag
 
-                    if background_error_getter is not None:
+        end_fast_search = False
 
-                        bkg_error = background_error_getter(current_start, time)
-
-                        sigma = sig.li_and_ma_equivalent_for_gaussian_background(bkg_error)[0]
+        # resolve once for functions used in the loop
+        searchsorted = np.searchsorted
 
 
 
+        # this is the main loop
+        # as long as we have not reached the end of the interval
+        # the loop will run
+        with progress_bar(self._arrival_times.shape[0]) as pbar:
+            while (not end_all_search):
+
+                # start of the fast search
+                # we reset the flag for the interval
+                # having been decreased in the last pass
+                decreased_interval = False
+
+                while (not end_fast_search):
+
+                    # we calculate the sigma of the current region
+                    _, counts = self._select_events(current_start, current_stop)
+
+                    sigma_exceeded = self._check_exceeds_sigma_interval(current_start,
+                                                                        current_stop,
+                                                                        counts,
+                                                                        sigma_level,
+                                                                        background_getter,
+                                                                        background_error_getter)
+
+                    time_step = abs(current_stop - current_start)
+
+                    # if we do not exceed the sigma
+                    # we need to increase the time interval
+                    if not sigma_exceeded:
+
+                        # however, if in the last pass we had to decrease
+                        # the interval, it means we have found where we
+                        # we need to start the slow search
+                        if decreased_interval:
+
+                            # mark where we are in the list
+                            start_idx = searchsorted(self._arrival_times, current_stop)
+
+                            # end the fast search
+                            end_fast_search = True
+
+                        # otherwise we increase the interval
+                        else:
+
+                            # unless, we would increase it too far
+                            if (current_stop + time_step * increase_factor) >= self._arrival_times[-1]:
+
+                                # mark where we are in the interval
+                                start_idx = searchsorted(self._arrival_times, current_stop)
+
+                                # then we also want to go ahead and get out of the fast search
+                                end_fast_search = True
+
+                            else:
+
+                                # increase the interval
+                                current_stop += time_step * increase_factor
+
+                    # if we did exceede the sigma level we will need to step
+                    # back in time to find where it was NOT exceeded
+                    else:
+
+                        # decrease the interval
+                        current_stop -= time_step * decrease_factor
+
+                        # inform the loop that we have been back stepping
+                        decreased_interval = True
+
+                # Now we are ready for the slow forward search
+                # where we count up all the photons
+
+                # we have already counted up the photons to this point
+                total_counts = counts
+
+                # start searching from where the fast search ended
+                pbar.increase(counts)
+
+                for time in self._arrival_times[start_idx:]:
+
+                    total_counts += 1
+                    pbar.increase()
+                    if total_counts < min_counts:
+
+                        continue
 
                     else:
 
-                        sigma = sig.li_and_ma()[0]
+                        # first use the background function to know the number of background counts
+                        bkg = background_getter(current_start, time)
 
-                    # now test if we have enough sigma
+                        sig = Significance(total_counts, bkg)
+
+                        if background_error_getter is not None:
+
+                            bkg_error = background_error_getter(current_start, time)
+
+                            sigma = sig.li_and_ma_equivalent_for_gaussian_background(bkg_error)[0]
+
+
+                        else:
+
+                            sigma = sig.li_and_ma()[0]
+
+                            # now test if we have enough sigma
+
+                        if sigma >= sigma_level:
+
+                            # if we succeeded we want to mark the time bins
+                            self._stops.append(time)
+
+                            self._starts.append(current_start)
+
+                            # set up the next fast search
+                            # by looking past this interval
+                            current_start = time
+
+                            current_stop = 0.5 * (self._arrival_times[-1] + time)
+
+                            end_fast_search = False
+
+                            # get out of the for loop
+                            break
+
+                # if we never exceeded the sigma level by the
+                # end of the search, we never will
+                if end_fast_search:
+
+                    # so lets kill the main search
+                    end_all_search = True
+
+        if not self._starts:
+
+            print("The requested sigma level could not be achieved in the interval. Try decreasing it.")
 
 
 
-                    if sigma >= sigma_level:
 
-                        self._stops.append(time)
 
-                        self._starts.append(current_start)
 
-                        current_start = time
 
-                        total_counts = 0
 
-                p.increase()
 
     def bin_by_constanst(self, dt):
         """
@@ -355,7 +509,7 @@ class TemporalBinner(object):
         self._starts = tmp
         self._stops = tmp + dt
 
-    def bin_by_bayesian_blocks(self, p0, bkg_integral_distribution=None, my_likelihood=None):
+    def bin_by_bayesian_blocks(self, p0, bkg_integral_distribution=None):
         """Divide a series of events characterized by their arrival time in blocks
         of perceptibly constant count rate. If the background integral distribution
         is given, divide the series in blocks where the difference with respect to
@@ -383,166 +537,10 @@ class TemporalBinner(object):
           numpy.array: the edges of the blocks found
         """
 
-        # Verify that the input array is one-dimensional
-
-
-
-        t_start = self._arrival_times[0]
-        t_stop = self._arrival_times[-1]
-
-        if (bkg_integral_distribution is not None):
-            # Transforming the inhomogeneous Poisson process into an homogeneous one with rate 1,
-            # by changing the time axis according to the background rate
-
-            t = np.array(bkg_integral_distribution(self._arrival_times))
-
-            # Now compute the start and stop time in the new system
-            tstart = bkg_integral_distribution(t_start)
-            tstop = bkg_integral_distribution(t_stop)
-        else:
-            t = self._arrival_times
-            tstart = t_start
-            tstop = t_stop
-        pass
-
-        # Create initial cell edges (Voronoi tessellation)
-        edges = np.concatenate([[tstart],
-                                0.5 * (t[1:] + t[:-1]),
-                                [tstop]])
-
-        # Create the edges also in the original time system
-        edges_ = np.concatenate([[t_start],
-                                 0.5 * (self._arrival_times[1:] + self._arrival_times[:-1]),
-                                 [t_stop]])
-
-        # Create a lookup table to be able to transform back from the transformed system
-        # to the original one
-        lookup_table = {key: value for (key, value) in zip(edges, edges_)}
-
-        # The last block length is 0 by definition
-        block_length = tstop - edges
-
-        if np.sum((block_length <= 0)) > 1:
-
-            raise RuntimeError("Events appears to be out of order! Check for order, or duplicated events.")
-
-        N = t.shape[0]
-
-        # arrays to store the best configuration
-        best = np.zeros(N, dtype=float)
-        last = np.zeros(N, dtype=int)
-        best_new = np.zeros(N, dtype=float)
-        last_new = np.zeros(N, dtype=int)
-
-        # Pre-computed priors (for speed)
-
-        if my_likelihood:
-
-            priors = my_likelihood.getPriors(N, p0)
-
-        else:
-
-            # eq. 21 from Scargle 2012
-            priors = 4 - np.log(73.53 * p0 * np.power(np.arange(1, N + 1), -0.478))
-        pass
-
-        x = np.ones(N)
-
-        # Speed tricks: resolve once for all the functions which will be used
-        # in the loop
-        cumsum = np.cumsum
-        log = np.log
-        argmax = np.argmax
-        numexpr_evaluate = numexpr.evaluate
-        arange = np.arange
-
-        # Decide the step for reporting progress
-        # incr = max(int(float(N) / 100.0 * 10), 1)
-
-
-        # This is where the computation happens. Following Scargle et al. 2012.
-        # This loop has been optimized for speed:
-        # * the expression for the fitness function has been rewritten to
-        #  avoid multiple log computations, and to avoid power computations
-        # * the use of scipy.weave and numexpr has been evaluated. The latter
-        #  gives a big gain (~40%) if used for the fitness function. No other
-        #  gain is obtained by using it anywhere else
-
-        times = []
-        TSs = []
-
-        # Set numexpr precision to low (more than enough for us), which is
-        # faster than high
-        old_accuracy = numexpr.set_vml_accuracy_mode('low')
-        numexpr.set_num_threads(1)
-        numexpr.set_vml_num_threads(1)
-
-        with progress_bar(N) as prg:
-            for R in range(N):
-
-                br = block_length[R + 1]
-                T_k = block_length[:R + 1] - br
-
-                # N_k: number of elements in each block
-                # This expression has been simplified for the case of
-                # unbinned events (i.e., one element in each block)
-                # It was:
-                # N_k = cumsum(x[:R + 1][::-1])[::-1]
-                # Now it is:
-                N_k = arange(R + 1, 0, -1)
-
-                # Evaluate fitness function
-                # This is the slowest part, which I'm speeding up by using
-                # numexpr. It provides a ~40% gain in execution speed.
-
-                fit_vec = numexpr_evaluate('''N_k * log(N_k/ T_k) ''',
-                                           optimization='aggressive')
-
-                p = priors[R]
-
-                A_R = fit_vec - p
-
-                A_R[1:] += best[:R]
-
-                i_max = argmax(A_R)
-
-                last[R] = i_max
-                best[R] = A_R[i_max]
-
-                prg.increase()
-
-        numexpr.set_vml_accuracy_mode(old_accuracy)
-
-        # Now find blocks
-        change_points = np.zeros(N, dtype=int)
-        i_cp = N
-        ind = N
-        while True:
-            i_cp -= 1
-            change_points[i_cp] = ind
-
-            if ind == 0:
-                break
-
-            ind = last[ind - 1]
-
-        change_points = change_points[i_cp:]
-
-        edg = edges[change_points]
-
-        # Transform the found edges back into the original time system
-        if bkg_integral_distribution is not None:
-            final_edges = map(lambda x: lookup_table[x], edg)
-        else:
-            final_edges = edg
+        final_edges = bayesian_blocks(self._arrival_times, self._tstart, self._tstop, p0, bkg_integral_distribution)
 
         self._starts = np.asarray(final_edges)[:-1]
         self._stops = np.asarray(final_edges)[1:]
-
-        # return np.asarray(finalEdges)
-
-
-
 
     def bin_by_custom(self, start, stop):
         """
@@ -557,3 +555,61 @@ class TemporalBinner(object):
         self._starts = start
         self._stops = stop
 
+    def _check_exceeds_sigma_interval(self, start, stop, counts, sigma_level, background_getter,
+                                      background_error_getter=None):
+
+        """
+
+        see if an interval exceeds a given sigma level
+
+
+        :param start:
+        :param stop:
+        :param counts:
+        :param sigma_level:
+        :param background_getter:
+        :param background_error_getter:
+        :return:
+        """
+
+        bkg = background_getter(start, stop)
+
+        sig = Significance(counts, bkg)
+
+        if background_error_getter is not None:
+
+            bkg_error = background_error_getter(start, stop)
+
+            sigma = sig.li_and_ma_equivalent_for_gaussian_background(bkg_error)[0]
+
+
+        else:
+
+            sigma = sig.li_and_ma()[0]
+
+        # now test if we have enough sigma
+
+        if sigma >= sigma_level:
+
+            return True
+
+        else:
+
+            return False
+
+    def _select_events(self, start, stop, ):
+        """
+        get the events and total counts over an interval
+
+        :param start:
+        :param stop:
+        :param events:
+        :return:
+        """
+
+        lt_idx = start <= self._arrival_times
+        gt_idx = self._arrival_times <= stop
+
+        idx = np.logical_and(lt_idx, gt_idx)
+
+        return idx, self._arrival_times[idx].shape[0]

@@ -12,8 +12,8 @@ import pandas as pd
 
 
 class JointLikelihoodSet(object):
-    def __init__(self, data_getter, model_getter,
-                 n_iterations, iteration_name='interval'):
+
+    def __init__(self, data_getter, model_getter, n_iterations, iteration_name='interval'):
 
         # Store the data and model getter
 
@@ -51,9 +51,9 @@ class JointLikelihoodSet(object):
             # More than one model
 
             # Check that all models are instances of Model
-            for model in model_or_models:
+            for this_model in model_or_models:
 
-                assert isinstance(model, Model), "The model getter function should return a model or a list of models"
+                assert isinstance(this_model, Model), "The model getter function should return a model or a list of models"
 
             # No need for a wrapper in this case
 
@@ -82,6 +82,11 @@ class JointLikelihoodSet(object):
 
         self._continue_on_failure = False
 
+        # By default do not compute the covariance matrix
+
+        self._compute_covariance = False
+
+
     def set_minimizer(self, minimizer, algorithm=None, callback=None):
 
         self._minimizer = minimizer
@@ -102,12 +107,6 @@ class JointLikelihoodSet(object):
         self._2nd_algorithm = algorithm
 
     def worker(self, interval):
-
-        # Print a message to divide one interval from another
-
-        log.info("\n\n\n==========================================")
-        log.info("JointLikelihoodSet: processing interval %s" % interval)
-        log.info("==========================================\n\n")
 
         # Get the dataset for this interval
 
@@ -164,7 +163,7 @@ class JointLikelihoodSet(object):
 
         try:
 
-            model_results, logl_results = jl.fit(quiet=True, compute_covariance=False)
+            model_results, logl_results = jl.fit(quiet=True, compute_covariance=self._compute_covariance)
 
         except Exception as e:
 
@@ -189,7 +188,7 @@ class JointLikelihoodSet(object):
 
             try:
 
-                model_results, logl_results = jl.fit(quiet=True, compute_covariance=False)
+                model_results, logl_results = jl.fit(quiet=True, compute_covariance=self._compute_covariance)
 
             except Exception as e:
 
@@ -210,7 +209,7 @@ class JointLikelihoodSet(object):
 
         return model_results, logl_results
 
-    def go(self, continue_on_failure=True, verbose=False, **options_for_parallel_computation):
+    def go(self, continue_on_failure=True, compute_covariance=False, verbose=False, **options_for_parallel_computation):
 
         # Generate the data frame which will contain all results
 
@@ -219,6 +218,8 @@ class JointLikelihoodSet(object):
             log.setLevel(logging.INFO)
 
         self._continue_on_failure = continue_on_failure
+
+        self._compute_covariance = compute_covariance
 
         # let's iterate, perform the fit and fill the data frame
 
@@ -267,9 +268,6 @@ class JointLikelihoodSet(object):
 
         return parameter_frames, like_frames
 
-
-class JointLikelihoodSetTwoModels(JointLikelihoodSet):
-    pass
 
 
 class JointLikelihoodSetAnalyzer(object):

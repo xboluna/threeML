@@ -28,6 +28,8 @@ from threeML.io.rich_display import display
 from threeML.io.step_plot import step_plot
 from threeML.plugins.OGIP.pha import PHAWrite
 
+from threeML.config.config import threeML_config
+
 __instrument_name = "Fermi GBM TTE (all detectors)"
 
 
@@ -36,7 +38,6 @@ class BinningMethodError(RuntimeError):
 
 
 class FermiGBMTTELike(OGIPLike):
-
     def __init__(self, name, tte_file, background_selections, source_intervals, rsp_file, trigger_time=None,
                  poly_order=-1, unbinned=True, verbose=True):
         """
@@ -152,7 +153,6 @@ class FermiGBMTTELike(OGIPLike):
                               rsp_file=self._rsp_file,
                               verbose=self._verbose)
 
-
         self._tstart = min(self._evt_list.tmin_list)
         self._tstop = max(self._evt_list.tmax_list)
 
@@ -175,7 +175,6 @@ class FermiGBMTTELike(OGIPLike):
                                 verbose=self._verbose)
 
             return new_ogip
-
 
     def set_background_interval(self, *intervals, **options):
         """
@@ -337,9 +336,6 @@ class FermiGBMTTELike(OGIPLike):
 
         self._verbose = old_verbose
 
-
-
-
     def get_background_parameters(self):
         """
         Returns a pandas DataFrame containing the background polynomial
@@ -490,6 +486,49 @@ class FermiGBMTTELike(OGIPLike):
 
             raise BinningMethodError('Only constant, significance, bayesblock, or custom method argument accepted.')
 
+    def get_ogip_from_binner(self):
+        """
+
+        Returns a list of ogip_instances corresponding to the
+        time intervals created by the binner.
+
+        :return: list of ogip instances for each time interval
+        """
+
+        # save the original interval if there is one
+        old_interval = copy.copy(self._active_interval)
+        old_verbose = copy.copy(self._verbose)
+
+        self._verbose = False
+
+        ogip_list = []
+
+        # create copies of the OGIP plugins with the
+        # time interval saved.
+
+
+
+        for i, interval in enumerate(self.text_bins):
+
+            self.set_active_time_interval(interval)
+
+            new_name = "%s_%d" % (self._name, i)
+
+            new_ogip = OGIPLike(new_name,
+                                pha_file=self._observed_pha,
+                                bak_file=self._bkg_pha,
+                                rsp_file=self._rsp_file,
+                                verbose=self._verbose)
+
+            ogip_list.append(new_ogip)
+
+        # restore the old interval
+
+        self.set_active_time_interval(*old_interval)
+
+        self._verbose = old_verbose
+
+        return ogip_list
 
 class GBMTTEFile(object):
     def __init__(self, ttefile):
@@ -666,6 +705,9 @@ class GBMTTEFile(object):
         display(fermi_df)
 
 
+
+
+
 def gbm_light_curve_plot(time_bins, cnts, bkg, width, selection, bkg_selections):
     fig, ax = plt.subplots()
 
@@ -680,7 +722,7 @@ def gbm_light_curve_plot(time_bins, cnts, bkg, width, selection, bkg_selections)
     # purple: #8da0cb
 
     step_plot(time_bins, cnts / width, ax,
-              color='#8da0cb', label="Light Curve")
+              color=threeML_config['gbm']['lightcurve color'], label="Light Curve")
 
     for tmin, tmax in selection:
         tmp_mask = np.logical_and(time_bins[:, 0] >= tmin, time_bins[:, 1] <= tmax)
@@ -691,12 +733,12 @@ def gbm_light_curve_plot(time_bins, cnts, bkg, width, selection, bkg_selections)
 
         for mask in all_masks[1:]:
             step_plot(time_bins[mask], cnts[mask] / width[mask], ax,
-                      color='#fc8d62',
+                      color=threeML_config['gbm']['selection color'],
                       fill=True,
                       fill_min=min_cnts)
 
     step_plot(time_bins[all_masks[0]], cnts[all_masks[0]] / width[all_masks[0]], ax,
-              color='#fc8d62',
+              color=threeML_config['gbm']['selection color'],
               fill=True,
               fill_min=min_cnts, label="Selection")
 
@@ -711,17 +753,17 @@ def gbm_light_curve_plot(time_bins, cnts, bkg, width, selection, bkg_selections)
         for mask in all_masks[1:]:
 
             step_plot(time_bins[mask], cnts[mask] / width[mask], ax,
-                      color='#80b1d3',
+                      color=threeML_config['gbm']['background selection color'],
                       fill=True,
                       fillAlpha=.4,
                       fill_min=min_cnts)
 
     step_plot(time_bins[all_masks[0]], cnts[all_masks[0]] / width[all_masks[0]], ax,
-              color='#80b1d3',
+              color=threeML_config['gbm']['background selection color'],
               fill=True,
               fill_min=min_cnts, fillAlpha=.4, label="Bkg. Selections")
 
-    ax.plot(mean_time, bkg, '#66c2a5', lw=2., label="Background")
+    ax.plot(mean_time, bkg, threeML_config['gbm']['background color'], lw=2., label="Background")
 
     # ax.fill_between(selection, bottom, top, color="#fc8d62", alpha=.4)
 

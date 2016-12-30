@@ -10,12 +10,12 @@ from threeML.io.rich_display import display
 import numpy as np
 import pandas as pd
 import uncertainties
-import astromodels.model
+import astromodels.core.model
 
 
 from threeML.minimizer import minimization
 from threeML.exceptions import custom_exceptions
-from threeML.io.table import Table, NumericMatrix
+from threeML.io.table import Table, NumericMatrix, long_path_formatter
 from threeML.parallel.parallel_client import ParallelClient
 from threeML.config.config import threeML_config
 from threeML.exceptions.custom_exceptions import custom_warnings, FitFailed
@@ -54,7 +54,7 @@ class JointLikelihood(object):
         # Process optional keyword parameters
         self.verbose = verbose
 
-        self._likelihood_model = likelihood_model # type: astromodels.model.Model
+        self._likelihood_model = likelihood_model # type: astromodels.core.model.Model
 
         self._data_list = data_list
 
@@ -63,6 +63,9 @@ class JointLikelihood(object):
             dataset.set_model(self._likelihood_model)
 
             # Now get the nuisance parameters from the data and add them to the model
+            # NOTE: it is important that this is *after* the setting of the model, as some
+            # plugins might need to adjust the number of nuisance parameters depending on the
+            # likelihood model
 
             for parameter_name, parameter in dataset.nuisance_parameters.items():
 
@@ -178,95 +181,108 @@ class JointLikelihood(object):
 
         self._update_free_parameters()
 
-        # Now check and fix if needed all the deltas of the parameters
-        # to 20% of their value (otherwise the fit will be super-slow)
+        # Check if we have free parameters, otherwise simply return the value of the log like
+        if len(self._free_parameters) == 0:
 
-        for k, v in self._free_parameters.iteritems():
+            custom_warnings.warn("There is no free parameter in the current model", RuntimeWarning)
 
-            if abs(v.delta) < abs(v.value) * 0.2:
+            # Generate an empty data frame, which will be returned
 
-                v.delta = abs(v.value) * 0.2
+            fit_results = pd.DataFrame.from_dict({})
 
-        # Instance the minimizer
+            # Store the "minimum", which is just the current value
+            self._current_minimum = float(self.minus_log_like_profile([]))
 
-        self._minimizer = self._get_minimizer(self.minus_log_like_profile,
-                                              self._free_parameters)
+        else:
 
-        # Perform the fit
+            # Now check and fix if needed all the deltas of the parameters
+            # to 20% of their value (otherwise the fit will be super-slow)
 
-        xs, log_likelihood_minimum = self._minimizer.minimize(compute_covar=compute_covariance)
+            for k, v in self._free_parameters.iteritems():
 
-        if log_likelihood_minimum == minimization.FIT_FAILED:
+                if abs(v.delta) < abs(v.value) * 0.2:
 
-            raise FitFailed("The fit failed to converge.")
+                    v.delta = abs(v.value) * 0.2
 
-        # Store the current minimum for the -log likelihood
+            # Instance the minimizer
 
-        self._current_minimum = float(log_likelihood_minimum)
+            self._minimizer = self._get_minimizer(self.minus_log_like_profile,
+                                                  self._free_parameters)
 
-        # Get the results from the minimizer (a panda container)
+            # Perform the fit
 
-        fit_results = self._minimizer.fit_results
+            xs, log_likelihood_minimum = self._minimizer.minimize(compute_covar=compute_covariance)
 
-        # Now produce an ad-hoc display. We don't use the pandas display methods because
-        # we want to display uncertainties with the right number of significant numbers
+            if log_likelihood_minimum == minimization.FIT_FAILED:
 
-        data = []
+                raise FitFailed("The fit failed to converge.")
 
-        # Also store the maximum length to decide the length for the line
+            # Store the current minimum for the -log likelihood
 
-        name_length = 0
+            self._current_minimum = float(log_likelihood_minimum)
 
-        for i, parameter_name in enumerate(fit_results.index.values):
+            # Get the results from the minimizer (a panda container)
 
-            value = fit_results.at[parameter_name, 'value']
+            fit_results = self._minimizer.fit_results
 
-            error = fit_results.at[parameter_name, 'error']
+            # Now produce an ad-hoc display. We don't use the pandas display methods because
+            # we want to display uncertainties with the right number of significant numbers
 
-            # Format the value and the error with sensible significant
-            # numbers
-            x = uncertainties.ufloat(value, error)
+            data = {'Best fit value':{}, 'Unit': {}}
 
-            # Add some space around the +/- sign
+            # Also store the maximum length to decide the length for the line
 
-            rep = x.__str__().replace("+/-", " +/- ")
+            name_length = 0
 
-            data.append([i, parameter_name, rep, self._free_parameters[parameter_name].unit])
+            for i, parameter_name in enumerate(fit_results.index.values):
 
-            if len(parameter_name) > name_length:
+                value = fit_results.at[parameter_name, 'value']
 
-                name_length = len(parameter_name)
+                error = fit_results.at[parameter_name, 'error']
 
-        best_fit_table = Table(rows=data,
-                               names=["#", "Name", "Best fit value", "Unit"],
-                               dtype=(str, 'S%i' % name_length, str, str))
+                # Format the value and the error with sensible significant
+                # numbers
+                x = uncertainties.ufloat(value, error)
 
-        if not quiet:
+                # Add some space around the +/- sign
 
-            print("Best fit values:\n")
+                rep = x.__str__().replace("+/-", " +/- ")
 
-            display(best_fit_table)
+                # Apply name formatter so long paths are shorten
+                this_shortened_name = long_path_formatter(parameter_name, 40)
 
-            print("\nNOTE: errors on parameters are approximate. Use get_errors().\n")
+                data['Best fit value'][this_shortened_name] = rep
+                data['Unit'][this_shortened_name] = self._free_parameters[parameter_name].unit
 
-        if compute_covariance:
 
-            corr_matrix = NumericMatrix(self._minimizer.correlation_matrix)
-
-            for col in corr_matrix.colnames:
-
-                corr_matrix[col].format = '2.2f'
+            best_fit_table = pd.DataFrame.from_dict(data)
 
             if not quiet:
 
-                print("\nCorrelation matrix:\n")
+                print("Best fit values:\n")
 
-                display(corr_matrix)
+                display(best_fit_table)
 
-        # Now collect the values for the likelihood for the various datasets
+                print("\nNOTE: errors on parameters are approximate. Use get_errors().\n")
 
-        # First restore best fit (to make sure we compute the likelihood at the right point)
-        self._minimizer.restore_best_fit()
+            if compute_covariance:
+
+                corr_matrix = NumericMatrix(self._minimizer.correlation_matrix)
+
+                for col in corr_matrix.colnames:
+
+                    corr_matrix[col].format = '2.2f'
+
+                if not quiet:
+
+                    print("\nCorrelation matrix:\n")
+
+                    display(corr_matrix)
+
+            # Now collect the values for the likelihood for the various datasets
+
+            # First restore best fit (to make sure we compute the likelihood at the right point)
+            self._minimizer.restore_best_fit()
 
         # Fill the dictionary with the values of the -log likelihood (total, and dataset by dataset)
 
@@ -952,14 +968,16 @@ class JointLikelihood(object):
         # (fit failed)
         idx = (cc == minimization.FIT_FAILED)
 
-        sub.plot(a[~idx], cc[~idx], lw=2)
+        sub.plot(a[~idx], cc[~idx], lw=2, color=threeML_config['mle']['profile color'])
 
         # Now plot the failed fits as "x"
 
         sub.plot(a[idx], [cc.min()] * a[idx].shape[0], 'x', c='red', markersize=2)
 
         # Decide colors
-        colors = ['blue', 'cyan', 'red']
+        colors = [threeML_config['mle']['profile level 1'],
+                  threeML_config['mle']['profile level 2'],
+                  threeML_config['mle']['profile level 3']]
 
         for s, d, c in zip(sigmas, delta_chi2, colors):
             sub.axhline(self._current_minimum + d, linestyle='--',
@@ -1024,10 +1042,10 @@ class JointLikelihood(object):
         bounds.append(cc.max())
 
         # Define the color palette
-        palette = cm.Pastel1
-        palette.set_over('white')
-        palette.set_under('white')
-        palette.set_bad('white')
+        palette = plt.get_cmap(threeML_config['mle']['contour cmap'])  # cm.Pastel1
+        palette.set_over(threeML_config['mle']['contour background'])
+        palette.set_under(threeML_config['mle']['contour background'])
+        palette.set_bad(threeML_config['mle']['contour background'])
 
         fig = plt.figure()
         sub = fig.add_subplot(111)
@@ -1064,7 +1082,9 @@ class JointLikelihood(object):
             t.set_verticalalignment('baseline')
 
         # Draw the line contours
-        sub.contour(b, a, cc, self._current_minimum + delta_chi2)
+        sub.contour(b, a, cc, self._current_minimum + delta_chi2,
+                    colors=(threeML_config['mle']['contour level 1'], threeML_config['mle']['contour level 2'],
+                            threeML_config['mle']['contour level 3']))
 
         # Set the axes labels
 
