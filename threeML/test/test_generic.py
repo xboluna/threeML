@@ -4,6 +4,7 @@ from threeML import *
 from threeML.utils.stats_tools import PoissonResiduals, Significance
 from threeML.utils.cartesian import cartesian
 
+
 def test_step_generator_setup():
     ra, dec = 0, 0
     name = "test"
@@ -24,8 +25,6 @@ def test_step_generator_setup():
 
 
 def test_poisson_classes():
-
-
     net = 100
     Noff = 1000
     Non = Noff + net
@@ -33,9 +32,7 @@ def test_poisson_classes():
 
     expected = alpha * Noff
 
-
-
-    pr = PoissonResiduals(Non=Non,Noff=Noff,alpha=alpha)
+    pr = PoissonResiduals(Non=Non, Noff=Noff, alpha=alpha)
 
     assert pr.net == Non - expected
     assert pr.expected == expected
@@ -56,8 +53,7 @@ def test_poisson_classes():
 
     one_side = pr.significance_one_side()
 
-
-    sig = Significance(Non=Non,Noff=Noff)
+    sig = Significance(Non=Non, Noff=Noff)
 
     res = sig.known_background()
     res = sig.li_and_ma()

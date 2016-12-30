@@ -78,7 +78,7 @@ class LikelihoodModelConverter(object):
         self._unique_filename = get_random_unique_name()
 
         gal = LikelihoodComponent.GalaxyAndExtragalacticDiffuse(
-            self.irfs, ra, dec, 2.5 * roi, cutout_name=self._unique_filename)
+                self.irfs, ra, dec, 2.5 * roi, cutout_name=self._unique_filename)
         gal.source.spectrum.Value.max = 1.5
         gal.source.spectrum.Value.min = 0.5
         gal.source.spectrum.setAttributes()
@@ -515,7 +515,8 @@ class FermiLATLike(PluginPrototype):
 
                 except:
 
-                    import pdb;pdb.set_trace()
+                    import pdb;
+                    pdb.set_trace()
 
             nuisanceParameters["%s_%s" % (self.name, name)].add_callback(this_callback)
 

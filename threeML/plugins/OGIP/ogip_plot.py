@@ -12,6 +12,7 @@ from threeML.config.config import threeML_config
 
 NO_REBIN = 1e-99
 
+
 def display_ogip_model_counts(analysis, data=(), **kwargs):
     """
 
@@ -253,8 +254,8 @@ def display_ogip_model_counts(analysis, data=(), **kwargs):
 
         # For each bin find the weighted average of the channel center
         mean_energy = []
-        delta_energy = [[],[]]
-        mean_energy_unrebinned = (energy_max + energy_min)/2.0
+        delta_energy = [[], []]
+        mean_energy_unrebinned = (energy_max + energy_min) / 2.0
 
         for e_min, e_max in zip(new_energy_min, new_energy_max):
 

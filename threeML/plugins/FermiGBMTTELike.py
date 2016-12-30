@@ -705,9 +705,6 @@ class GBMTTEFile(object):
         display(fermi_df)
 
 
-
-
-
 def gbm_light_curve_plot(time_bins, cnts, bkg, width, selection, bkg_selections):
     fig, ax = plt.subplots()
 

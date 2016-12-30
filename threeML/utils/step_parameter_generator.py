@@ -103,7 +103,4 @@ def step_generator(intervals, parameter):
 
             func.parameters['zero_point_%d' % i].value = interval
 
-
-
     return func
-

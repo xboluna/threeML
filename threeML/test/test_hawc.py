@@ -21,11 +21,11 @@ from threeML.io.file_utils import sanitize_filename
 skip_if_hawc_is_not_available = pytest.mark.skipif((os.environ.get('HAWC_3ML_TEST_DATA_DIR') is None) or (not has_HAWC),
                                                    reason="HAWC test dataset or HAWC environment is not available")
 
-def is_within_tolerance(truth, value, relative_tolerance=0.01):
 
+def is_within_tolerance(truth, value, relative_tolerance=0.01):
     assert truth != 0
 
-    if abs((truth-value) / truth) <= relative_tolerance:
+    if abs((truth - value) / truth) <= relative_tolerance:
 
         return True
 
@@ -40,7 +40,6 @@ _response_name = "detector_response.root"
 
 @skip_if_hawc_is_not_available
 def test_hawc_point_source_fit():
-
     # Ensure test environment is valid
 
     assert is_plugin_available("HAWCLike"), "HAWCLike is not available!"
@@ -100,8 +99,10 @@ def test_hawc_point_source_fit():
     # Check that we have converged to the right solution
     # (the true value of course are not exactly the value simulated,
     # they are just the point where the fit should converge)
-    assert is_within_tolerance(3.07920784548e-20, parameter_frame['value']['TestSource.spectrum.main.Cutoff_powerlaw.K'])
-    assert is_within_tolerance(-2.33736923856, parameter_frame['value']['TestSource.spectrum.main.Cutoff_powerlaw.index'])
+    assert is_within_tolerance(3.07920784548e-20,
+                               parameter_frame['value']['TestSource.spectrum.main.Cutoff_powerlaw.K'])
+    assert is_within_tolerance(-2.33736923856,
+                               parameter_frame['value']['TestSource.spectrum.main.Cutoff_powerlaw.index'])
     assert is_within_tolerance(41889862104.0, parameter_frame['value']['TestSource.spectrum.main.Cutoff_powerlaw.xc'])
 
     assert is_within_tolerance(55979.423676, like['-log(likelihood)']['HAWC'])
@@ -128,9 +129,9 @@ def test_hawc_point_source_fit():
 
     spectrum.display()
 
+
 @skip_if_hawc_is_not_available
 def test_hawc_extended_source_fit():
-
     # Ensure test environment is valid
 
     assert is_plugin_available("HAWCLike"), "HAWCLike is not available!"
@@ -165,17 +166,17 @@ def test_hawc_extended_source_fit():
 
     shape.radius = 1.5 * u.degree
     shape.radius.bounds = (0.5 * u.degree, 1.55 * u.degree)
-    #shape.radius.fix = True
+    # shape.radius.fix = True
 
     spectrum.K = 4.39964273e-20
     spectrum.K.bounds = (1e-24, 1e-17)
 
     spectrum.piv = 1 * u.TeV
-    #spectrum.piv.fix = True
+    # spectrum.piv.fix = True
 
     spectrum.index = -2.37
     spectrum.index.bounds = (-4, -1)
-    #spectrum.index.fix = True
+    # spectrum.index.fix = True
 
     spectrum.xc = 42.3 * u.TeV
     spectrum.xc.bounds = (1 * u.TeV, 100 * u.TeV)
@@ -205,7 +206,8 @@ def test_hawc_extended_source_fit():
     # (the true value of course are not exactly the value simulated,
     # they are just the point where the fit should converge)
     assert is_within_tolerance(4.64056469931e-20, parameter_frame['value']['ExtSource.spectrum.main.Cutoff_powerlaw.K'])
-    assert is_within_tolerance(-2.44931279819, parameter_frame['value']['ExtSource.spectrum.main.Cutoff_powerlaw.index'])
+    assert is_within_tolerance(-2.44931279819,
+                               parameter_frame['value']['ExtSource.spectrum.main.Cutoff_powerlaw.index'])
     assert is_within_tolerance(1.45222982526, parameter_frame['value']['ExtSource.Disk_on_sphere.radius'])
 
     assert is_within_tolerance(186389.106099, like['-log(likelihood)']['HAWC'])

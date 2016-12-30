@@ -31,24 +31,20 @@ def internet_connection_is_active(host="8.8.8.8", port=53, timeout=3):
 
 
 def discovery_message(message):
-
     print("\n * %s\n" % message)
 
 
 def fixable_problem(message):
-
     print("\nPROBLEM: %s\n" % message)
 
 
 def fatal_error(message):
-
     print("\n\nFATAL: %s\n\n" % message)
 
     sys.exit(-1)
 
 
 def yes_or_no(prompt):
-
     while True:
 
         # This is only python2 compatible. Will need to change to input() instead of raw_input() with python3.
@@ -71,7 +67,6 @@ def yes_or_no(prompt):
 
 
 def prompt_string(message, default=None, path=False):
-
     while True:
 
         answer = raw_input(message)
@@ -80,7 +75,7 @@ def prompt_string(message, default=None, path=False):
 
             answer = default
 
-        if answer is None: # this gets triggered if there was no default
+        if answer is None:  # this gets triggered if there was no default
 
             print("You have to provide an answer")
             continue
@@ -146,7 +141,6 @@ if __name__ == "__main__":
     if not choice:
 
         sys.exit(-2)
-
 
     # First make sure pip is installed
     try:
@@ -217,7 +211,7 @@ if __name__ == "__main__":
 
         fatal_error("Path %s exists. Are you sure you did not run this script already? If you want to activate the "
                     "environment, use 'source %s'. If you want to start from scratch, "
-                    "remove %s first." % (env_path, os.path.join(env_path,'bin','activate'), env_path))
+                    "remove %s first." % (env_path, os.path.join(env_path, 'bin', 'activate'), env_path))
 
     subprocess.check_call("virtualenv --no-site-packages %s" % env_path, shell=True)
 
@@ -251,5 +245,3 @@ if __name__ == "__main__":
           "installed in that environment)" % (env_path, env_path))
 
     sys.exit(0)
-
-

@@ -137,7 +137,6 @@ class MultinestMinimizer(Minimizer):
             # NOTE: I encapsulate this to avoid the output in the constructor of Analyzer
 
             with suppress_stdout():
-
                 multinest_analyzer = pymultinest.analyse.Analyzer(n_params=n_dim,
                                                                   outputfiles_basename=outputfiles_basename)
 

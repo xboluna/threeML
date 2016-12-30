@@ -14,7 +14,6 @@ _config_file_name = 'threeML_config.yml'
 
 
 class Config(object):
-
     def __init__(self):
 
         # Read first the default configuration file
@@ -76,7 +75,7 @@ class Config(object):
                                          "old configuration at %s so you can transfer any customization you might "
                                          "have from there to the new configuration file. We will use the default "
                                          "configuration for this session."
-                                         %(user_config_path, "%s.bak" % user_config_path))
+                                         % (user_config_path, "%s.bak" % user_config_path))
 
                     # Move the config file to a backup file
                     shutil.copy2(user_config_path, "%s.bak" % user_config_path)
@@ -266,12 +265,12 @@ class Config(object):
         else:
 
             # Make a dictionary of known checkers and what they apply to
-            known_checkers = {'color': (self.is_matplotlib_color, 'a matplotlib color (name or html hex value)'),
-                              'cmap': (self.is_matplotlib_cmap, 'a matplotlib color map (available: %s)' %
-                                       ", ".join(plt.colormaps())),
-                              'name': (self.is_string, "a valid name (string)"),
-                              'switch': (self.is_bool, "one of yes, no, True, False"),
-                              'ftp url': (self.is_ftp_url, "a valid FTP URL"),
+            known_checkers = {'color'   : (self.is_matplotlib_color, 'a matplotlib color (name or html hex value)'),
+                              'cmap'    : (self.is_matplotlib_cmap, 'a matplotlib color map (available: %s)' %
+                                           ", ".join(plt.colormaps())),
+                              'name'    : (self.is_string, "a valid name (string)"),
+                              'switch'  : (self.is_bool, "one of yes, no, True, False"),
+                              'ftp url' : (self.is_ftp_url, "a valid FTP URL"),
                               'http url': (self.is_http_url, "a valid HTTP(S) URL")}
 
             # Now that we know that the provided configuration have the right structure, let's check that
@@ -287,8 +286,8 @@ class Config(object):
 
                 except IndexError:
 
-                    raise ConfigurationFileCorrupt("Cannot parse element '%s' in configuration file %s" %(key,
-                                                                                                          config_path))
+                    raise ConfigurationFileCorrupt("Cannot parse element '%s' in configuration file %s" % (key,
+                                                                                                           config_path))
 
                 if element_type in known_checkers:
 
@@ -302,7 +301,7 @@ class Config(object):
                 else:
 
                     raise ConfigurationFileCorrupt("Cannot understand element type %s for "
-                                       "key %s in config file %s" % (element_type, key, config_path))
+                                                   "key %s in config file %s" % (element_type, key, config_path))
 
             # If we are here it means that all checks were successful
             # Return the new configuration, where all types are stripped out

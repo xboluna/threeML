@@ -14,7 +14,6 @@ from threeML.utils.differentiation import get_jacobian
 from threeML.config.config import threeML_config
 
 
-
 class InvalidUnitError(RuntimeError):
     pass
 
@@ -137,7 +136,6 @@ class SpectralPlotter(object):
         if not fit_cmap:
 
             fit_cmap = plt.get_cmap(threeML_config['model plot']['bayes cmap'])
-
 
         x_values = np.logspace(np.log10(x_min), np.log10(x_max), num_ene)
 

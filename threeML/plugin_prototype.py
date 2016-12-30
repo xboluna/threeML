@@ -82,7 +82,6 @@ class PluginPrototype(object):
         return self._nuisance_parameters
 
     def update_nuisance_parameters(self, new_nuisance_parameters):
-
         assert isinstance(new_nuisance_parameters, dict)
 
         self._nuisance_parameters = new_nuisance_parameters

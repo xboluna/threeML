@@ -181,7 +181,6 @@ def bayesian_blocks(tt, ttstart, ttstop, p0, bkgIntegralDistr=None):
         tstart = ttstart
         tstop = ttstop
 
-
     # Create initial cell edges (Voronoi tessellation)
     edges = np.concatenate([[tstart],
                             0.5 * (t[1:] + t[:-1]),

@@ -472,7 +472,6 @@ class SpectralFlux(object):
 
             self._analysis.restore_best_fit()
 
-
             parameter_best_fit_value = parameters[par].value
 
             min_value, max_value = parameters[par].bounds
