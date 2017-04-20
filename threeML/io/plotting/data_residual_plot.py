@@ -81,7 +81,9 @@ class ResidualPlot(object):
                     alpha=.9,
                     capsize=0,
                     label=label,
-                    color=color)
+                    color=color,
+                    zorder=-33,
+                          )
 
         #ax.plot(x, expected_model_magnitudes, label='%s Model' % data._name, color=model_color)
 
