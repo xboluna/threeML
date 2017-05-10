@@ -44,7 +44,8 @@ def cmap_intervals(length=50, cmap='YlOrBr', start=None, stop=None):
     # qualitative color maps
     if cmap in  ['Accent', 'Dark2', 'Paired', 'Pastel1',
                              'Pastel2', 'Set1', 'Set2', 'Set3', 'Vega10',
-                             'Vega20', 'Vega20b', 'Vega20c']:
+                             'Vega20', 'Vega20b', 'Vega20c','tab10',
+                             'tab20', 'tab20b', 'tab20c']:
 
 
 
