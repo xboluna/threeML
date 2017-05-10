@@ -40,6 +40,10 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
     :param model_colors: (optional) a tuple or list with the color for each folded model
     :param show_legend: (optional) if True (default), shows a legend
     :param step: (optional) if True (default), show the folded model as steps, if False, the folded model is plotted
+    :param model_ls:
+    :param model_lw:
+    :param plot_model_front:
+
     with linear interpolation between each bin
     :return: figure instance
 
@@ -130,6 +134,21 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
 
         min_rates = [NO_REBIN] * len(data_keys)
 
+    model_ls = '-'
+
+    if 'model_ls' in kwargs:
+        model_ls = kwargs.pop('model_ls')
+
+    model_lw = 1.
+
+    if 'model_lw' in kwargs:
+        model_lw = kwargs.pop('model_lw')
+
+    plot_model_front = False
+
+    if 'plot_model_front' in kwargs:
+        plot_model_front = kwargs.pop('plot_model_front')
+
     if 'data_cmap' in kwargs:
         data_cmap = plt.get_cmap(kwargs.pop('data_cmap'))
         data_colors = cmap_intervals(len(data_keys), data_cmap)
@@ -147,21 +166,20 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
     if 'model_colors' in kwargs:
         model_colors = kwargs.pop('model_colors')
 
-        assert len(model_colors) >= len(
-            data_keys), "You need to provide at least a number of model colors equal to the " \
+        assert len(model_colors) >= len(data_keys), "You need to provide at least a number of model colors equal to the " \
                         "number of datasets"
 
-    #fig, (ax, ax1) = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [2, 1]}, **kwargs)
+    if 'data_colors' in kwargs:
+        data_colors = kwargs.pop('data_colors')
 
-    residual_plot = ResidualPlot(**kwargs)
+    residual_plot = ResidualPlot(plot_model_front=plot_model_front,**kwargs)
 
     # go thru the detectors
     for key, data_color, model_color, min_rate in zip(data_keys, data_colors, model_colors, min_rates):
 
         # NOTE: we use the original (unmasked) vectors because we need to rebin ourselves the data later on
 
-        data = analysis.data_list[key] # type: SpectrumLike
-
+        data = analysis.data_list[key]  # type: SpectrumLike
 
         energy_min, energy_max = data._rsp.ebounds[:-1], data._rsp.ebounds[1:]
 
@@ -170,7 +188,6 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
         # get the expected counts
         # NOTE: _rsp.convolve() returns already the rate (counts / s)
         expected_model_rate = data._evaluate_model() * data._nuisance_parameter.value
-
 
         # figure out the type of data
 
@@ -218,9 +235,6 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
 
                 cnt_err = data._observed_count_errors
 
-
-
-
         # calculate all the correct quantites
 
         if data._background_noise_model is not None:
@@ -239,7 +253,6 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
             src_rate = (observed_counts / data.exposure)
 
             src_rate_err = cnt_err / data.exposure
-
 
         # rebin on the source rate
 
@@ -295,7 +308,6 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
             delta_energy[1].append(e_max - this_mean_energy)
             mean_energy.append(this_mean_energy)
 
-
         # Residuals
 
         # we need to get the rebinned counts
@@ -315,7 +327,6 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
             significance_calc = Significance(rebinned_observed_counts,
                                              rebinned_background_counts + rebinned_model_counts / data.scale_factor,
                                              data.scale_factor)
-
 
         # Divide the various cases
 
@@ -364,7 +375,7 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
                                          new_chan_width,
                                          new_model_rate,
                                          label='%s Model' % data._name,
-                                         color=model_color)
+                                         color=model_color,lw=model_lw,ls=model_ls)
 
 
         else:
@@ -380,14 +391,16 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
             residual_plot.add_model(x,
                                     y,
                                     label='%s Model' % data._name,
-                                    color=model_color)
+                                    color=model_color,
+                                    lw=model_lw,
+                                    ls=model_ls
+                                    )
 
     return residual_plot.finalize(xlabel="Energy\n(keV)",
                                   ylabel="Net rate\n(counts s$^{-1}$ keV$^{-1}$)",
                                   xscale='log',
                                   yscale='log',
                                   show_legend=show_legend)
-
 
 
 def display_histogram_fit(analysis, data=(), **kwargs):
@@ -704,8 +717,6 @@ def display_photometry_model_magnitudes(analysis, data=(), **kwargs):
     if 'step' in kwargs:
         step = bool(kwargs.pop('step'))
 
-
-
     if 'data_cmap' in kwargs:
         data_cmap = plt.get_cmap(kwargs.pop('data_cmap'))
         data_colors = cmap_intervals(len(data_keys), data_cmap)
@@ -729,18 +740,14 @@ def display_photometry_model_magnitudes(analysis, data=(), **kwargs):
 
     residual_plot = ResidualPlot(**kwargs)
 
-
     # go thru the detectors
     for key, data_color, model_color in zip(data_keys, data_colors, model_colors):
-
-
         data = analysis.data_list[key]  # type: PhotometryLike
-
 
         # get the expected counts
 
 
-        avg_wave_length = data._filter_set.effective_wavelength.value #type: np.ndarray
+        avg_wave_length = data._filter_set.effective_wavelength.value  # type: np.ndarray
 
         # need to sort because filters are not always in order
 
@@ -748,13 +755,12 @@ def display_photometry_model_magnitudes(analysis, data=(), **kwargs):
 
         expected_model_magnitudes = data._get_total_expectation()[sort_idx]
         magnitudes = data.magnitudes[sort_idx]
-        mag_errors= data.magnitude_errors[sort_idx]
+        mag_errors = data.magnitude_errors[sort_idx]
         avg_wave_length = avg_wave_length[sort_idx]
 
         residuals = (expected_model_magnitudes - magnitudes) / mag_errors
 
         widths = data._filter_set.wavelength_bounds.widths[sort_idx]
-
 
         residual_plot.add_data(x=avg_wave_length,
                                y=magnitudes,
@@ -769,18 +775,8 @@ def display_photometry_model_magnitudes(analysis, data=(), **kwargs):
                                 label='%s Model' % data._name,
                                 color=model_color)
 
-
-
-        return residual_plot.finalize(xlabel="Wavelength\n(%s)"%data._filter_set.waveunits,
+        return residual_plot.finalize(xlabel="Wavelength\n(%s)" % data._filter_set.waveunits,
                                       ylabel='Magnitudes',
                                       xscale='linear',
                                       yscale='linear',
                                       invert_y=True)
-
-
-
-
-
-
-
-

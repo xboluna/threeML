@@ -7,11 +7,24 @@ from threeML.config.config import threeML_config
 
 class ResidualPlot(object):
 
-    def __init__(self,**kwargs):
+    def __init__(self,plot_model_front=False,**kwargs):
         """
 
         :param kwargs:
         """
+
+        if plot_model_front:
+
+            self._model_z_order = -20
+            self._data_z_order = -40
+
+        else:
+
+            self._model_z_order = -40
+            self._data_z_order = -20
+
+
+
 
 
         self._fig, (self._ax, self._ax1) = plt.subplots(2, 1, sharex=True,
@@ -21,7 +34,7 @@ class ResidualPlot(object):
 
 
 
-    def add_model_step(self, xmin, xmax, xwidth, y, label, color='r'):
+    def add_model_step(self, xmin, xmax, xwidth, y, label, color='r',lw=1,ls='-'):
         """
 
         :param xmin:
@@ -39,9 +52,9 @@ class ResidualPlot(object):
         step_plot(np.asarray(zip(xmin, xmax)),
                   y / xwidth,
                   self._ax, alpha=.8,
-                  label=label, color=color)
+                  label=label, color=color,lw=lw,ls=ls,zorder=self._model_z_order)
 
-    def add_model(self,x,y,label,color):
+    def add_model(self,x,y,label,color,lw=1,ls='-'):
         """
 
         :param x:
@@ -51,7 +64,7 @@ class ResidualPlot(object):
         :return:
         """
 
-        self._ax.plot(x,y,label=label,color=color,alpha=.8)
+        self._ax.plot(x,y,label=label,color=color,alpha=.8,lw=lw,ls=ls,zorder=self._model_z_order)
 
 
     def add_data(self, x, y, residuals, label, xerr=None, yerr=None, color='r'):
@@ -78,20 +91,22 @@ class ResidualPlot(object):
                     markersize=threeML_config['residual plot']['error marker size'],
                     linestyle='',
                     elinewidth=threeML_config['residual plot']['error line width'],
-                    alpha=.9,
+                    alpha=.8,
                     capsize=0,
                     label=label,
-                    color=color)
+                    color=color,
+                    zorder = self._data_z_order)
 
         #ax.plot(x, expected_model_magnitudes, label='%s Model' % data._name, color=model_color)
 
         #residuals = (expected_model_magnitudes - mag_errors) / mag_errors
 
-        self._ax1.axhline(0, linestyle='--', color='k')
+        self._ax1.axhline(0, linestyle='--', color='k',lw=.9)
         self._ax1.errorbar(x,
                      residuals,
                      yerr=np.ones_like(residuals),
                      capsize=0,
+                     linestyle='',
                      fmt=threeML_config['residual plot']['error marker'],
                      elinewidth=threeML_config['residual plot']['error line width'],
                      markersize=threeML_config['residual plot']['error marker size'],
