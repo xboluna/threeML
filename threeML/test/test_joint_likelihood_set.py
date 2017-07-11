@@ -52,6 +52,21 @@ def get_model(id):
 
 def test_joint_likelihood_set():
 
+
+    n_interations = 10
+
+    jlset = JointLikelihoodSet(data_getter=get_data, model_getter=get_model, n_iterations=n_interations)
+
+
+    res = jlset.go(compute_covariance=False)
+
+    print res
+
+    for id in range(n_interations):
+
+        print jlset.results[id].display()
+
+
     jlset = JointLikelihoodSet(data_getter=get_data, model_getter=get_model, n_iterations=10)
 
     jlset.go(compute_covariance=False)
@@ -59,12 +74,19 @@ def test_joint_likelihood_set():
 
 def test_joint_likelihood_set_parallel():
 
-    jlset = JointLikelihoodSet(data_getter=get_data, model_getter=get_model, n_iterations=10)
+
+    n_interations = 10
+
+    jlset = JointLikelihoodSet(data_getter=get_data, model_getter=get_model, n_iterations=n_interations)
 
     with parallel_computation():
 
         res = jlset.go(compute_covariance=False)
 
     print res
+
+    for id in range(n_interations):
+
+        print jlset.results[id].display()
 
 
