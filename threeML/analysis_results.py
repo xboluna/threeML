@@ -968,6 +968,7 @@ class BayesianResults(_AnalysisResults):
              Useful when e.g. spectral indices in models have different names but you wish to compare them. Format is
              {'old label': 'new label'}
         :param names: (optional) name for each chain first name is this chain followed by each added chain
+
         :param kwargs: chain consumer kwargs
         :return:
 
@@ -1022,13 +1023,13 @@ class BayesianResults(_AnalysisResults):
 
             renamed_parameters = None
 
-        if 'parameters_in_log_space' in kwargs:
+        if 'log_parameters' in kwargs:
 
-            parameters_in_log_space = kwargs.pop('parameters_in_log_space')
+            log_parameters = kwargs.pop('log_parameters')
 
         else:
 
-            parameters_in_log_space = None
+            log_parameters = None
 
         if 'parameters' in _default_plot_args:
 
@@ -1041,6 +1042,21 @@ class BayesianResults(_AnalysisResults):
             parameters = None
 
             replace_parameters = False
+
+        if 'truth' in _default_plot_args:
+
+            truth = _default_plot_args.pop('truth')
+
+            replace_truth = True
+
+        else:
+
+            truth = None
+
+            replace_truth = False
+
+
+
 
         for j, other_fit in enumerate(other_fits):
 
@@ -1077,26 +1093,39 @@ class BayesianResults(_AnalysisResults):
 
                             labels_other[i] = new_label
 
+            # grab the transformed samples
 
             sample_others = other_fit.samples.T
 
-            if parameters_in_log_space is not None:
+
+
+            # if there are logged parameters
+            # we have to transform them and update the labels
+
+            if log_parameters is not None:
 
                 new_labels = []
-                new_parameters = []
 
                 for i, label in enumerate(labels_other):
 
-                    if label in parameters_in_log_space:
+                    if label in log_parameters:
 
                         # ok, we will take the log10 of this parameter
                         sample_others[:, i] = np.log10(sample_others[:, i])
+
+                        # and update the level
 
                         log_label = "log %s" % label
 
                         new_labels.append(log_label)
 
+                        if label in truth:
+
+                            truth[log_label] = np.log10(truth[label])
+
                         if parameters is not None:
+
+                            # now update the down selected parameter
 
                             for k, param in enumerate(parameters):
 
@@ -1104,11 +1133,11 @@ class BayesianResults(_AnalysisResults):
 
                                     parameters[k] = 'log %s' % label
 
-
-
                     else:
 
                         new_labels.append(label)
+
+                # set the labels to the updated
 
                 labels_other = new_labels
 
@@ -1151,14 +1180,14 @@ class BayesianResults(_AnalysisResults):
 
         samples = self._samples_transposed.T
 
-        if parameters_in_log_space is not None:
+        if log_parameters is not None:
 
 
             new_labels = []
 
             for i, label in enumerate(labels):
 
-                if label in parameters_in_log_space:
+                if label in log_parameters:
 
                     # ok, we will take the log10 of this parameter
                     samples[:, i] = np.log10(samples[:, i])
@@ -1166,6 +1195,9 @@ class BayesianResults(_AnalysisResults):
                     log_label = "log %s" % label
 
                     new_labels.append(log_label)
+
+                    if label in truth:
+                        truth[log_label] = np.log10(truth[label])
 
                     if parameters is not None:
 
@@ -1181,9 +1213,6 @@ class BayesianResults(_AnalysisResults):
             labels = new_labels
 
         # Must remove underscores!
-
-
-
 
         for i, val, in enumerate(labels):
 
@@ -1205,8 +1234,9 @@ class BayesianResults(_AnalysisResults):
 
             _default_plot_args['parameters'] = parameters
 
+        if replace_truth:
 
-        print parameters
+            _default_plot_args['truth'] = truth
 
         cc.configure(**kwargs)
         fig = cc.plot(**_default_plot_args)
