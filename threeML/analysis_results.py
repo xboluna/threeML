@@ -847,7 +847,7 @@ class BayesianResults(_AnalysisResults):
 
         return fig
 
-    def corner_plot_cc(self, parameters=None, renamed_parameters=None, **cc_kwargs):
+    def corner_plot_cc(self, parameters=None, renamed_parameters=None, parameters_in_log_space=None,**cc_kwargs):
         """
         Corner plots using chainconsumer which allows for nicer plotting of
         marginals
@@ -881,6 +881,8 @@ class BayesianResults(_AnalysisResults):
         labels = []
         priors = []
 
+        samples = self._samples_transposed.T
+
         for i, (parameter_name, parameter) in enumerate(self._free_parameters.iteritems()):
             short_name = parameter_name.split(".")[-1]
 
@@ -897,7 +899,45 @@ class BayesianResults(_AnalysisResults):
                 for i, _ in enumerate(labels):
 
                     if labels[i] == old_label:
+
                         labels[i] = new_label
+
+                        if parameters is not None:
+
+                            for i, param in enumerate(parameters):
+
+                                if old_label == param:
+
+                                    parameters[i] = new_label
+
+
+
+
+
+        if parameters_in_log_space is not None:
+
+            for i, label in enumerate(labels):
+
+                if label in parameters_in_log_space:
+
+                    # ok, we will take the log10 of this parameter
+                    samples[:,i] = np.log10(samples[:,i])
+
+                    label[i] = "log %s" %label[i]
+
+
+
+                    if parameters is not None:
+
+                        for j, param in enumerate(parameters):
+
+                            if label == param:
+                                parameters[j] = "log %s" %label[i]
+
+
+
+
+
 
         # Must remove underscores!
 
@@ -908,7 +948,7 @@ class BayesianResults(_AnalysisResults):
 
         cc = chainconsumer.ChainConsumer()
 
-        cc.add_chain(self._samples_transposed.T, parameters=labels)
+        cc.add_chain(samples, parameters=labels)
 
         if not cc_kwargs:
             cc_kwargs = threeML_config['bayesian']['chain consumer style']
@@ -952,6 +992,10 @@ class BayesianResults(_AnalysisResults):
 
         keys = kwargs.keys()
 
+
+
+
+
         for key in keys:
 
             if key in _default_plot_args:
@@ -978,6 +1022,26 @@ class BayesianResults(_AnalysisResults):
 
             renamed_parameters = None
 
+        if 'parameters_in_log_space' in kwargs:
+
+            parameters_in_log_space = kwargs.pop('parameters_in_log_space')
+
+        else:
+
+            parameters_in_log_space = None
+
+        if 'parameters' in _default_plot_args:
+
+            parameters = _default_plot_args.pop('parameters')
+
+            replace_parameters = True
+
+        else:
+
+            parameters = None
+
+            replace_parameters = False
+
         for j, other_fit in enumerate(other_fits):
 
             if other_fit.samples is not None:
@@ -1002,6 +1066,7 @@ class BayesianResults(_AnalysisResults):
             # Rename any parameters so that they can be plotted together.
             # A dictionary is passed with keys = old label values = new label.
 
+
             if renamed_parameters is not None:
 
                 for old_label, new_label in renamed_parameters.iteritems():
@@ -1009,7 +1074,45 @@ class BayesianResults(_AnalysisResults):
                     for i, _ in enumerate(labels_other):
 
                         if labels_other[i] == old_label:
+
                             labels_other[i] = new_label
+
+
+            sample_others = other_fit.samples.T
+
+            if parameters_in_log_space is not None:
+
+                new_labels = []
+                new_parameters = []
+
+                for i, label in enumerate(labels_other):
+
+                    if label in parameters_in_log_space:
+
+                        # ok, we will take the log10 of this parameter
+                        sample_others[:, i] = np.log10(sample_others[:, i])
+
+                        log_label = "log %s" % label
+
+                        new_labels.append(log_label)
+
+                        if parameters is not None:
+
+                            for k, param in enumerate(parameters):
+
+                                if label == param:
+
+                                    parameters[k] = 'log %s' % label
+
+
+
+                    else:
+
+                        new_labels.append(label)
+
+                labels_other = new_labels
+
+
 
             # Must remove underscores!
 
@@ -1020,11 +1123,11 @@ class BayesianResults(_AnalysisResults):
 
             if names is not None:
 
-                cc.add_chain(other_fit.samples.T, parameters=labels_other, name=names[j + 1])
+                cc.add_chain(sample_others, parameters=labels_other, name=names[j + 1])
 
             else:
 
-                cc.add_chain(other_fit.samples.T, parameters=labels_other)
+                cc.add_chain(sample_others, parameters=labels_other)
 
         labels = []
         # priors = []
@@ -1045,7 +1148,42 @@ class BayesianResults(_AnalysisResults):
                     if labels[i] == old_label:
                         labels[i] = new_label
 
+
+        samples = self._samples_transposed.T
+
+        if parameters_in_log_space is not None:
+
+
+            new_labels = []
+
+            for i, label in enumerate(labels):
+
+                if label in parameters_in_log_space:
+
+                    # ok, we will take the log10 of this parameter
+                    samples[:, i] = np.log10(samples[:, i])
+
+                    log_label = "log %s" % label
+
+                    new_labels.append(log_label)
+
+                    if parameters is not None:
+
+                        for j, param in enumerate(parameters):
+
+                            if label == param:
+                                parameters[j] = "log %s" % label[i]
+
+                else:
+
+                    new_labels.append(label)
+
+            labels = new_labels
+
         # Must remove underscores!
+
+
+
 
         for i, val, in enumerate(labels):
 
@@ -1054,13 +1192,21 @@ class BayesianResults(_AnalysisResults):
 
         if names is not None:
 
-            cc.add_chain(self._samples_transposed.T, parameters=labels, name=names[0])
+            cc.add_chain(samples, parameters=labels, name=names[0])
 
         else:
 
-            cc.add_chain(self._samples_transposed.T, parameters=labels)
+            cc.add_chain(samples, parameters=labels)
+
 
         # should only be the cc kwargs
+
+        if replace_parameters:
+
+            _default_plot_args['parameters'] = parameters
+
+
+        print parameters
 
         cc.configure(**kwargs)
         fig = cc.plot(**_default_plot_args)
