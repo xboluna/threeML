@@ -389,9 +389,28 @@ class XYLike(PluginPrototype):
 
         return new_xy
 
-    def plot(self, x_label='x', y_label='y', x_scale='linear', y_scale='linear'):
+    def plot(self, x_label='x', y_label='y', x_scale='linear', y_scale='linear',step=False, subplot=None):
+        """
+        plot the data and the model
 
-        fig, sub = plt.subplots(1,1)
+        :param x_label: label of x-axis
+        :param y_label:  label of y-axis
+        :param x_scale: linear or log
+        :param y_scale: linear or log
+        :param step: True or False to show non-interpolated model
+        :param subplot: plot to previous subplot
+        :return:
+        """
+
+        if subplot is None:
+
+            fig, sub = plt.subplots(1,1)
+
+        else:
+
+            sub = subplot
+
+            fig = subplot.get_figure()
 
         sub.errorbar(self.x, self.y, yerr=self.yerr, fmt='.')
 
@@ -403,9 +422,33 @@ class XYLike(PluginPrototype):
 
         if self._likelihood_model is not None:
 
-            flux = self._likelihood_model.get_total_flux(self.x)
 
-            sub.plot(self.x, flux, '--', label='model')
+
+
+            if step:
+
+                x_points = self.x
+
+            else:
+
+                if x_scale == 'linear':
+
+                    x_points = np.linspace(self.x.min(),self.x.max(),len(self.x)*10)
+
+                else:
+
+                    x_points = np.logspace(np.log10(self.x.min()), np.log10(self.x.max()), len(self.x) * 10)
+
+            if self._source_name is None:
+
+
+                flux = self._likelihood_model.get_total_flux(x_points)
+
+            else:
+
+                flux = self._likelihood_model.sources[self._source_name](x_points)
+
+            sub.plot(x_points, flux, '--', label='model')
 
             sub.legend(loc=0)
 
