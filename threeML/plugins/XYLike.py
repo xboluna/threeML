@@ -389,7 +389,7 @@ class XYLike(PluginPrototype):
 
         return new_xy
 
-    def plot(self, x_label='x', y_label='y', x_scale='linear', y_scale='linear',step=False, subplot=None):
+    def plot(self, x_label='x', y_label='y', x_scale='linear', y_scale='linear',data_color=None,model_color=None,step=False, subplot=None):
         """
         plot the data and the model
 
@@ -412,7 +412,7 @@ class XYLike(PluginPrototype):
 
             fig = subplot.get_figure()
 
-        sub.errorbar(self.x, self.y, yerr=self.yerr, fmt='.')
+        sub.errorbar(self.x, self.y, yerr=self.yerr, fmt='.',color=data_color)
 
         sub.set_xscale(x_scale)
         sub.set_yscale(y_scale)
@@ -448,7 +448,9 @@ class XYLike(PluginPrototype):
 
                 flux = self._likelihood_model.sources[self._source_name](x_points)
 
-            sub.plot(x_points, flux, '--', label='model')
+
+
+            sub.plot(x_points, flux, '--', label='model',color=model_color)
 
             sub.legend(loc=0)
 
