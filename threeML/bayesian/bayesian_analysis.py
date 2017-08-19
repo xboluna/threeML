@@ -402,6 +402,8 @@ class BayesianAnalysis(object):
 
         self._log_probability_values = np.array(map(lambda samples: self.get_posterior(samples), self._raw_samples))
 
+        self._marginal_likelihood = multinest_analyzer.get_stats()['global evidence'] / np.log(10.)
+
         self._build_samples_dictionary()
 
         self._build_results()
@@ -412,7 +414,7 @@ class BayesianAnalysis(object):
 
         # now get the marginal likelihood
 
-        self._marginal_likelihood = multinest_analyzer.get_stats()['global evidence'] / np.log(10.)
+
 
         return self.samples
 
@@ -476,12 +478,17 @@ class BayesianAnalysis(object):
         statistical_measures['AIC'] = aic(total_log_posterior,len(self._free_parameters),total_n_data_points)
         statistical_measures['BIC'] = bic(total_log_posterior,len(self._free_parameters),total_n_data_points)
 
+
+
         this_dic, pdic = dic(self)
 
         # compute the posterior estimates
 
         statistical_measures['DIC'] = this_dic
         statistical_measures['PDIC'] = pdic
+
+        if self._marginal_likelihood is not None:
+            statistical_measures['log(Z)'] = self._marginal_likelihood
 
         #TODO: add WAIC
 
