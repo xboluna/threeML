@@ -1033,7 +1033,7 @@ class BayesianResults(_AnalysisResults):
 
         if 'parameters' in _default_plot_args:
 
-            parameters = _default_plot_args.pop('parameters')
+            parameters = _default_plot_args['parameters']
 
             replace_parameters = True
 
@@ -1045,7 +1045,7 @@ class BayesianResults(_AnalysisResults):
 
         if 'truth' in _default_plot_args:
 
-            truth = _default_plot_args.pop('truth')
+            truth = _default_plot_args['truth']
 
             replace_truth = True
 
@@ -1119,9 +1119,10 @@ class BayesianResults(_AnalysisResults):
 
                         new_labels.append(log_label)
 
-                        if label in truth:
+                        if truth is not None:
+                            if label in truth:
 
-                            truth[log_label] = np.log10(truth[label])
+                                truth[log_label] = np.log10(truth[label])
 
                         if parameters is not None:
 
@@ -1196,8 +1197,10 @@ class BayesianResults(_AnalysisResults):
 
                     new_labels.append(log_label)
 
-                    if label in truth:
-                        truth[log_label] = np.log10(truth[label])
+                    if truth is not None:
+
+                        if label in truth:
+                            truth[log_label] = np.log10(truth[label])
 
                     if parameters is not None:
 
@@ -1230,13 +1233,7 @@ class BayesianResults(_AnalysisResults):
 
         # should only be the cc kwargs
 
-        if replace_parameters:
 
-            _default_plot_args['parameters'] = parameters
-
-        if replace_truth:
-
-            _default_plot_args['truth'] = truth
 
         cc.configure(**kwargs)
         fig = cc.plot(**_default_plot_args)
