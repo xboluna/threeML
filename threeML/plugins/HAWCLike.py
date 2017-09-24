@@ -68,8 +68,10 @@ class HAWCLike(PluginPrototype):
                                                    defaultMaxChannel)
 
         # By default the fit of the CommonNorm is deactivated
-
-        self.deactivate_CommonNorm()
+        # NOTE: this flag sets the internal common norm minimization of LiFF, not
+        # the common norm as nuisance parameter (which is controlled by activate_CommonNorm() and
+        # deactivate_CommonNorm()
+        self._fit_commonNorm = False
 
         # This is to keep track of whether the user defined a ROI or not
 
@@ -306,11 +308,11 @@ class HAWCLike(PluginPrototype):
 
     def activate_CommonNorm(self):
 
-        self.fitCommonNorm = True
+        self._nuisance_parameters.values()[0].free = True
 
     def deactivate_CommonNorm(self):
 
-        self.fitCommonNorm = False
+        self._nuisance_parameters.values()[0].free = False
 
     def _fill_model_cache(self):
 
@@ -360,7 +362,7 @@ class HAWCLike(PluginPrototype):
             # The 1000.0 factor is due to the fact that this diff. flux here is in
             # 1 / (kev cm2 s) while LiFF needs it in 1 / (MeV cm2 s)
 
-            this_spectrum = self._model.get_point_source_fluxes(id, self._energies) * 1000.0
+            this_spectrum = self._model.get_point_source_fluxes(id, self._energies, tag=self._tag) * 1000.0
 
             this_ra, this_dec = self._model.get_point_source_position(id)
 
@@ -383,7 +385,7 @@ class HAWCLike(PluginPrototype):
 
         self._fill_model_cache()
 
-        logL = self._theLikeHAWC.getLogLike(self.fitCommonNorm)
+        logL = self._theLikeHAWC.getLogLike(self._fit_commonNorm)
 
         return logL
 
@@ -396,7 +398,7 @@ class HAWCLike(PluginPrototype):
 
         self._fill_model_cache()
 
-        TS = self._theLikeHAWC.calcTS(self.fitCommonNorm)
+        TS = self._theLikeHAWC.calcTS(self._fit_commonNorm)
 
         return TS
 
@@ -410,7 +412,7 @@ class HAWCLike(PluginPrototype):
 
     def inner_fit(self):
 
-        self._theLikeHAWC.SetBackgroundNormFree(self.fitCommonNorm)
+        self._theLikeHAWC.SetBackgroundNormFree(self._fit_commonNorm)
 
         logL = self.get_log_like()
 
