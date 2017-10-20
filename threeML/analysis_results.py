@@ -687,6 +687,7 @@ class _AnalysisResults(object):
         :param use_components: plot the components of each source (default: False)
         :param components_to_use: (optional) list of string names of the components to plot: including 'total'
         :param sum_sources: (optional) if True, also the sum of all sources will be plotted
+        :param get_distribution: return the distribution instead of the mean
         :return:
         """
 
