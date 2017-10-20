@@ -673,7 +673,7 @@ class _AnalysisResults(object):
 
     def get_point_source_flux(self, ene_min, ene_max, sources=(), confidence_level=0.68,
                               flux_unit='erg/(s cm2)', use_components=False, components_to_use=(),
-                              sum_sources=False):
+                              sum_sources=False, get_distribution=False):
         """
 
         :param ene_min: minimum energy (an astropy quantity, like 1.0 * u.keV. You can also use a frequency, like
@@ -704,6 +704,7 @@ class _AnalysisResults(object):
             'components_to_use': components_to_use,
             'sources_to_use': sources,
             'sum_sources': sum_sources,
+            'get_distribution': get_distribution
 
         }
 
@@ -721,18 +722,22 @@ class _AnalysisResults(object):
 
         if mle_results is not None:
 
-            # Format the errors and display the resulting data frame
+            if not get_distribution:
 
-            display(mle_results.apply(_format_error, axis=1))
+                # Format the errors and display the resulting data frame
+
+                display(mle_results.apply(_format_error, axis=1))
 
             # Return the dataframe
             return mle_results
 
         elif bayes_results is not None:
 
-            # Format the errors and display the resulting data frame
+            if not get_distribution:
 
-            display(bayes_results.apply(_format_error, axis=1))
+                # Format the errors and display the resulting data frame
+
+                display(bayes_results.apply(_format_error, axis=1))
 
             # Return the dataframe
             return bayes_results

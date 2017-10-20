@@ -327,7 +327,7 @@ def _collect_sums_into_dictionaries(analyses, use_components, components_to_use)
     return total_analysis, component_sum_dict, num_sources_to_use
 
 
-def _append_best_fit_and_errors(samples, _defaults, label, fluxes, p_errors, n_errors, labels):
+def _append_best_fit_and_errors(samples, _defaults, label, fluxes, p_errors, n_errors, labels, get_distribution):
     if _defaults['best_fit'] == 'average':
 
         best_fit = samples.average[0, 0]
@@ -340,13 +340,20 @@ def _append_best_fit_and_errors(samples, _defaults, label, fluxes, p_errors, n_e
 
     negative_error = samples.lower_error[0, 0]
 
-    fluxes.append(best_fit)
+    if get_distribution:
+
+        fluxes.append(samples.samples[0,0])
+
+    else:
+
+        fluxes.append(best_fit)
+
     p_errors.append(positive_error)
     n_errors.append(negative_error)
     labels.append(label)
 
 
-def _compute_output(analyses, _defaults, out):
+def _compute_output(analyses, _defaults, out, get_distribution):
     fluxes = []
     p_errors = []
     n_errors = []
@@ -374,7 +381,7 @@ def _compute_output(analyses, _defaults, out):
 
                 label = "%s: %s" % (key, component)
 
-                _append_best_fit_and_errors(samples, _defaults, label, fluxes, p_errors, n_errors, labels)
+                _append_best_fit_and_errors(samples, _defaults, label, fluxes, p_errors, n_errors, labels, get_distribution)
 
         else:
 
@@ -388,10 +395,11 @@ def _compute_output(analyses, _defaults, out):
 
             label = "%s: total" % key
 
-            _append_best_fit_and_errors(samples, _defaults, label, fluxes, p_errors, n_errors, labels)
+            _append_best_fit_and_errors(samples, _defaults, label, fluxes, p_errors, n_errors, labels, get_distribution)
 
     if fluxes:
         # now make a data frame
+
 
         mle_df = pd.DataFrame({'flux': fluxes, 'low bound': n_errors, 'hi bound': p_errors},
                               index=labels)
@@ -406,7 +414,7 @@ def _compute_output(analyses, _defaults, out):
         out.append(None)
 
 
-def _compute_output_with_components(_defaults, component_sum_dict, total_analysis, out):
+def _compute_output_with_components(_defaults, component_sum_dict, total_analysis, out, get_distribution):
 
     fluxes = []
     n_errors = []
@@ -435,7 +443,13 @@ def _compute_output_with_components(_defaults, component_sum_dict, total_analysi
 
             label = component
 
-            fluxes.append(best_fit)
+            if get_distribution:
+
+                fluxes.append(summed_analysis.samples[0,0])
+
+            else:
+                fluxes.append(best_fit)
+
             p_errors.append(positive_error)
             n_errors.append(negative_error)
             labels.append(label)
@@ -458,7 +472,14 @@ def _compute_output_with_components(_defaults, component_sum_dict, total_analysi
 
         label = 'total'
 
-        fluxes.append(best_fit)
+        if get_distribution:
+
+            fluxes.append(summed_analysis.samples[0,0])
+
+        else:
+
+            fluxes.append(best_fit)
+
         p_errors.append(positive_error)
         n_errors.append(negative_error)
         labels.append(label)
@@ -500,7 +521,8 @@ def _calculate_point_source_flux(ene_min, ene_max, *analyses, **kwargs):
     :param ene_max: (optional) maximum energy to plot
     :param use_components: (optional) True or False to plot the spectral components
     :param components_to_use: (optional) list of string names of the components to plot: including 'total'
-    will also plot the total spectrum
+    :param get_distribution: (optional) returns distribution instead of mean
+   
 
     :return: mle_dataframe, bayes_dataframe
     """
@@ -517,6 +539,7 @@ def _calculate_point_source_flux(ene_min, ene_max, *analyses, **kwargs):
         'components_to_use': [],
         'sources_to_use': [],
         'sum_sources': False,
+        'get_distribution': False
 
     }
 
@@ -546,11 +569,11 @@ def _calculate_point_source_flux(ene_min, ene_max, *analyses, **kwargs):
 
         # Process the MLE analyses
 
-        _compute_output(mle_analyses, _defaults, out)
+        _compute_output(mle_analyses, _defaults, out, _defaults['get_distribution'])
 
         # now do the bayesian side
 
-        _compute_output(bayesian_analyses, _defaults, out)
+        _compute_output(bayesian_analyses, _defaults, out, _defaults['get_distribution'])
 
     else:
 
@@ -561,7 +584,7 @@ def _calculate_point_source_flux(ene_min, ene_max, *analyses, **kwargs):
                                                                                         _defaults['use_components'],
                                                                                         _defaults['components_to_use'])
 
-        _compute_output_with_components(_defaults, component_sum_dict_mle, total_analysis_mle, out)
+        _compute_output_with_components(_defaults, component_sum_dict_mle, total_analysis_mle, out, _defaults['get_distribution'])
 
         # now do the bayesian side
 
@@ -570,6 +593,6 @@ def _calculate_point_source_flux(ene_min, ene_max, *analyses, **kwargs):
                                                                                             _defaults[
                                                                                                 'components_to_use'])
 
-        _compute_output_with_components(_defaults, component_sum_dict_bayes, total_analysis_bayes, out)
+        _compute_output_with_components(_defaults, component_sum_dict_bayes, total_analysis_bayes, out, _defaults['get_distribution'])
 
     return out
