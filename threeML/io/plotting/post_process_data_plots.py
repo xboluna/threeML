@@ -17,7 +17,19 @@ from threeML.io.plotting.data_residual_plot import ResidualPlot
 NO_REBIN = 1e-99
 
 
-def display_spectrum_model_counts(analysis, data=(), **kwargs):
+def display_spectrum_model_counts(analysis,
+                                  data=None,
+                                  step=True,
+                                  data_cmap=None,
+                                  data_colors=None,
+                                  model_cmap=None,
+                                  model_colors=None,
+                                  show_legend=True,
+                                  show_residuals=True,
+                                  show_model=True,
+                                  show_data=True,
+                                  model_subplot=None,
+                                  **kwargs):
     """
 
     Display the fitted model count spectrum of one or more Spectrum plugins
@@ -38,7 +50,7 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
     :param show_legend: (optional) if True (default), shows a legend
     :param step: (optional) if True (default), show the folded model as steps, if False, the folded model is plotted
     :param model_subplot: (optional) axe(s) to plot to for overplotting
-    :param with_model: (optional) plot data with or without model
+    :param show_model: (optional) plot data with or without model
     with linear interpolation between each bin
     :return: figure instance
 
@@ -47,7 +59,7 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
 
     # If the user supplies a subset of the data, we will use that
 
-    if not data:
+    if data is None:
 
         data_keys = analysis.data_list.keys()
 
@@ -82,22 +94,27 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
     # default settings
 
     # Default is to show the model with steps
-    step = True
 
-    data_cmap = threeML_config['ogip']['data plot cmap']  # plt.cm.rainbow
-    model_cmap = threeML_config['ogip']['model plot cmap']  # plt.cm.nipy_spectral_r
+    if data_cmap is None:
 
-    # Legend is on by default
-    show_legend = True
+        data_cmap = threeML_config['ogip']['data plot cmap']
 
-    show_residuals = True
+    if model_cmap is None:
 
-    with_model = True
+        model_cmap = threeML_config['ogip']['model plot cmap']
+
+
+
 
     # Default colors
 
-    data_colors = cmap_intervals(len(data_keys), data_cmap)
-    model_colors = cmap_intervals(len(data_keys), model_cmap)
+    if data_colors is None:
+
+        data_colors = cmap_intervals(len(data_keys), data_cmap)
+
+    if model_colors is None:
+
+        model_colors = cmap_intervals(len(data_keys), model_cmap)
 
 
 
@@ -105,29 +122,6 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
     # Now override defaults according to the optional keywords, if present
 
 
-
-    if 'show_data' in kwargs:
-
-        show_data = bool(kwargs.pop('show_data'))
-
-    else:
-
-        show_data = True
-
-
-    if 'show_legend' in kwargs:
-        show_legend = bool(kwargs.pop('show_legend'))
-
-    if 'show_residuals' in kwargs:
-        show_residuals= bool(kwargs.pop('show_residuals'))
-
-    if 'show_model' in kwargs:
-
-        show_model = bool(kwargs.pop('show_model'))
-
-    else:
-
-        show_model = True
 
 
     #deal with plot axes scales
@@ -156,8 +150,6 @@ def display_spectrum_model_counts(analysis, data=(), **kwargs):
 
         log_axes = None
 
-    if 'step' in kwargs:
-        step = bool(kwargs.pop('step'))
 
     if 'min_rate' in kwargs:
 
