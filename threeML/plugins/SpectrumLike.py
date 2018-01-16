@@ -2620,12 +2620,6 @@ class SpectrumLike(PluginPrototype):
 
 
 
-
-
-
-
-
-
         residual_plot = ResidualPlot(show_residuals=show_residuals, **kwargs)
 
         # energy_min, energy_max = self._rsp.ebounds[:-1], self._rsp.ebounds[1:]
