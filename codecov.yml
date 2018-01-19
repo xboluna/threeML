@@ -18,4 +18,6 @@ comment:
   layout: "header, diff"
   behavior: default  # update if exists else create new
 
-
+ignore:
+  - "*tutorial_material.py"
+ 
