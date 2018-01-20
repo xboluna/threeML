@@ -64,6 +64,16 @@ def test_XYLike_chi2():
     #assert np.allclose(res[0]['value'].values, [0.83005902, 40.20040456, 62.78162993, 5.04082923, 0.27279872])
     assert np.allclose(res[0]['value'].values,[0.82896119, 40.20269202, 62.80359114, 5.04080011, 0.27286713], rtol=0.05)
 
+    # now test when no error assigned
+
+    xy = XYLike("test", x, y, poisson_data=False)
+
+    assert np.all(xy.yerr == 1)
+
+    xy.plot()
+
+
+
 
 def test_XYLike_poisson():
 
@@ -147,3 +157,39 @@ def test_XYLike_assign_to_source():
     log_like_after = jl.minus_log_like_profile(*predicted_parameters)
 
     assert log_like_before != log_like_after
+
+
+def test_inout():
+
+
+    yerr = np.array(gauss_sigma)
+    y = np.array(gauss_signal)
+
+    #chi2
+
+    xy = XYLike("test", x, y, yerr)
+
+    df = xy.to_dataframe()
+
+    new_xy = XYLike.from_dataframe('test',df)
+
+    #poisson
+
+    xy = XYLike("test", x, y)
+
+    df = xy.to_dataframe()
+
+    new_xy = XYLike.from_dataframe('test',df)
+
+    # txt file
+
+    xy.to_txt('test_xy.txt')
+
+    xy.from_text_file('test', 'test_xy.txt')
+
+
+    xy.to_csv()
+
+
+
+
