@@ -8,6 +8,7 @@ from threeML.plugins.DispersionSpectrumLike import DispersionSpectrumLike
 from threeML.plugins.SpectrumLike import SpectrumLike
 from threeML.utils.OGIP.response import OGIPResponse
 
+np.seterr(all='ignore')
 
 def test_assigning_source_name():
 
@@ -169,6 +170,19 @@ def test_spectrumlike_fit():
 
     assert np.all(np.isclose([K_variates.mean(), kT_variates.mean()], [sim_K, sim_kT], atol=1 ))
 
+    plugin = spectrum_generator
+
+    # properties
+
+    plugin.observed_counts
+    plugin.observed_count_errors
+    plugin.background_counts
+    plugin.background_count_errors
+    plugin.scale_factor
+    plugin.exposure
+    plugin.area_ratio
+    plugin.background_exposure
+
 
 def test_dispersionspectrumlike_fit():
 
@@ -207,6 +221,19 @@ def test_dispersionspectrumlike_fit():
     kT_variates = jl.results.get_variates('mysource.spectrum.main.Blackbody.kT')
 
     assert np.all(np.isclose([K_variates.mean(), kT_variates.mean()], [sim_K, sim_kT], atol=1))
+
+    plugin = spectrum_generator
+
+    # properties
+
+    plugin.observed_counts
+    plugin.observed_count_errors
+    plugin.background_counts
+    plugin.background_count_errors
+    plugin.scale_factor
+    plugin.exposure
+    plugin.area_ratio
+    plugin.background_exposure
 
 
 
@@ -270,5 +297,23 @@ def test_spectrum_like_with_background_model():
     kT_variates = jl.results.get_variates('mysource.spectrum.main.Blackbody.kT')
 
     assert np.all(np.isclose([K_variates.mean(), kT_variates.mean()], [sim_K, sim_kT], rtol=0.5))
+
+
+    plugin = plugin_bkg_model
+
+    # properties
+
+    plugin.observed_counts
+    plugin.observed_count_errors
+    plugin.background_counts
+    plugin.background_count_errors
+    plugin.scale_factor
+    plugin.exposure
+    plugin.area_ratio
+    plugin.background_exposure
+
+
+
+
 
 
