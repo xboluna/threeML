@@ -124,82 +124,82 @@ class GBMTTEFile(object):
         # Normal dead time
         self._deadtime[~overflow_mask] = 2.E-6  # s
 
-    def _compute_mission_times(self):
-
-        mission_dict = {}
-
-        if self.trigger_time == 0:
-            return None
-
-        # Complements to Volodymyr Savchenko
-
-        xtime_url = "https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/xTime/xTime.pl"
-
-        pattern = """<tr>.*?<th scope=row><label for="(.*?)">(.*?)</label></th>.*?<td align=center>.*?</td>.*?<td>(.*?)</td>.*?</tr>"""
-
-        args = dict(
-            time_in_sf=self._trigger_time,
-            timesys_in="u",
-            timesys_out="u",
-            apply_clock_offset="yes")
-
-
-        try:
-
-            content = requests.get(xtime_url, params=args).content
-
-            mission_info = re.findall(pattern, content, re.S)
-
-            mission_dict['UTC'] = mission_info[0][-1]
-            mission_dict[mission_info[7][1]] = mission_info[7][2]  # LIGO
-            mission_dict[mission_info[8][1]] = mission_info[8][2]  # NUSTAR
-            mission_dict[mission_info[12][1]] = mission_info[12][2]  # RXTE
-            mission_dict[mission_info[16][1]] = mission_info[16][2]  # SUZAKU
-            mission_dict[mission_info[20][1]] = mission_info[20][2]  # SWIFT
-            mission_dict[mission_info[24][1]] = mission_info[24][2]  # CHANDRA
-
-        except:
-
-            warnings.warn("You do not have the requests library, cannot get time system from Heasarc "
-                          "at this point.")
-
-            return None
-
-
-
-        return mission_dict
-
-    def __repr__(self):
-
-        return self._output().to_string()
-
-    def _output(self):
-
-        """
-                Examine the currently selected interval
-                If connected to the internet, will also look up info for other instruments to compare with
-                Fermi.
-
-                :return: none
-                """
-        mission_dict = compute_fermi_relative_mission_times(self._trigger_time)
-
-        fermi_dict = collections.OrderedDict()
-
-        fermi_dict['Fermi Trigger Time'] = "%.3f" % self._trigger_time
-        fermi_dict['Fermi MET OBS Start'] = "%.3f" % self._start_events
-        fermi_dict['Fermi MET OBS Stop'] = "%.3f" % self._stop_events
-        fermi_dict['Fermi UTC OBS Start'] = self._utc_start
-        fermi_dict['Fermi UTC OBS Stop'] = self._utc_stop
-
-        fermi_df = pd.Series(fermi_dict, index=fermi_dict.keys())
-
-        if mission_dict is not None:
-            mission_df = pd.Series(mission_dict, index=mission_dict.keys())
-
-            fermi_df = fermi_df.append(mission_df)
-
-        return fermi_df
+    # def _compute_mission_times(self):
+    #
+    #     mission_dict = {}
+    #
+    #     if self.trigger_time == 0:
+    #         return None
+    #
+    #     # Complements to Volodymyr Savchenko
+    #
+    #     xtime_url = "https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/xTime/xTime.pl"
+    #
+    #     pattern = """<tr>.*?<th scope=row><label for="(.*?)">(.*?)</label></th>.*?<td align=center>.*?</td>.*?<td>(.*?)</td>.*?</tr>"""
+    #
+    #     args = dict(
+    #         time_in_sf=self._trigger_time,
+    #         timesys_in="u",
+    #         timesys_out="u",
+    #         apply_clock_offset="yes")
+    #
+    #
+    #     try:
+    #
+    #         content = requests.get(xtime_url, params=args).content
+    #
+    #         mission_info = re.findall(pattern, content, re.S)
+    #
+    #         mission_dict['UTC'] = mission_info[0][-1]
+    #         mission_dict[mission_info[7][1]] = mission_info[7][2]  # LIGO
+    #         mission_dict[mission_info[8][1]] = mission_info[8][2]  # NUSTAR
+    #         mission_dict[mission_info[12][1]] = mission_info[12][2]  # RXTE
+    #         mission_dict[mission_info[16][1]] = mission_info[16][2]  # SUZAKU
+    #         mission_dict[mission_info[20][1]] = mission_info[20][2]  # SWIFT
+    #         mission_dict[mission_info[24][1]] = mission_info[24][2]  # CHANDRA
+    #
+    #     except:
+    #
+    #         warnings.warn("You do not have the requests library, cannot get time system from Heasarc "
+    #                       "at this point.")
+    #
+    #         return None
+    #
+    #
+    #
+    #     return mission_dict
+    #
+    # def __repr__(self):
+    #
+    #     return self._output().to_string()
+    #
+    # def _output(self):
+    #
+    #     """
+    #             Examine the currently selected interval
+    #             If connected to the internet, will also look up info for other instruments to compare with
+    #             Fermi.
+    #
+    #             :return: none
+    #             """
+    #     mission_dict = compute_fermi_relative_mission_times(self._trigger_time)
+    #
+    #     fermi_dict = collections.OrderedDict()
+    #
+    #     fermi_dict['Fermi Trigger Time'] = "%.3f" % self._trigger_time
+    #     fermi_dict['Fermi MET OBS Start'] = "%.3f" % self._start_events
+    #     fermi_dict['Fermi MET OBS Stop'] = "%.3f" % self._stop_events
+    #     fermi_dict['Fermi UTC OBS Start'] = self._utc_start
+    #     fermi_dict['Fermi UTC OBS Stop'] = self._utc_stop
+    #
+    #     fermi_df = pd.Series(fermi_dict, index=fermi_dict.keys())
+    #
+    #     if mission_dict is not None:
+    #         mission_df = pd.Series(mission_dict, index=mission_dict.keys())
+    #
+    #         fermi_df = fermi_df.append(mission_df)
+    #
+    #     return fermi_df
 
 
 class GBMCdata(object):
@@ -289,81 +289,81 @@ class GBMCdata(object):
 
 
 
-    def _compute_mission_times(self):
-
-        mission_dict = {}
-
-        if self.trigger_time == 0:
-            return None
-
-        # Complements to Volodymyr Savchenko
-
-        xtime_url = "https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/xTime/xTime.pl"
-
-        pattern = """<tr>.*?<th scope=row><label for="(.*?)">(.*?)</label></th>.*?<td align=center>.*?</td>.*?<td>(.*?)</td>.*?</tr>"""
-
-        args = dict(
-            time_in_sf=self._trigger_time,
-            timesys_in="u",
-            timesys_out="u",
-            apply_clock_offset="yes")
-
-
-
-        try:
-
-            content = requests.get(xtime_url, params=args).content
-
-            mission_info = re.findall(pattern, content, re.S)
-
-            mission_dict['UTC'] = mission_info[0][-1]
-            mission_dict[mission_info[7][1]] = mission_info[7][2]  # LIGO
-            mission_dict[mission_info[8][1]] = mission_info[8][2]  # NUSTAR
-            mission_dict[mission_info[12][1]] = mission_info[12][2]  # RXTE
-            mission_dict[mission_info[16][1]] = mission_info[16][2]  # SUZAKU
-            mission_dict[mission_info[20][1]] = mission_info[20][2]  # SWIFT
-            mission_dict[mission_info[24][1]] = mission_info[24][2]  # CHANDRA
-
-        except:
-
-            warnings.warn("You do not have the requests library, cannot get time system from Heasarc "
-                          "at this point.")
-
-            return None
-
-
-
-        return mission_dict
-
-    def __repr__(self):
-
-        return self._output().to_string()
-
-    def _output(self):
-
-        """
-                Examine the currently selected interval
-                If connected to the internet, will also look up info for other instruments to compare with
-                Fermi.
-
-                :return: none
-                """
-        mission_dict = compute_fermi_relative_mission_times(self._trigger_time)
-
-        fermi_dict = collections.OrderedDict()
-
-        fermi_dict['Fermi Trigger Time'] = "%.3f" % self._trigger_time
-        fermi_dict['Fermi MET OBS Start'] = "%.3f" % self._start_events
-        fermi_dict['Fermi MET OBS Stop'] = "%.3f" % self._stop_events
-        fermi_dict['Fermi UTC OBS Start'] = self._utc_start
-        fermi_dict['Fermi UTC OBS Stop'] = self._utc_stop
-
-        fermi_df = pd.Series(fermi_dict, index=fermi_dict.keys())
-
-        if mission_dict is not None:
-            mission_df = pd.Series(mission_dict, index=mission_dict.keys())
-
-            fermi_df = fermi_df.append(mission_df)
-
-        return fermi_df
-
+    # def _compute_mission_times(self):
+    #
+    #     mission_dict = {}
+    #
+    #     if self.trigger_time == 0:
+    #         return None
+    #
+    #     # Complements to Volodymyr Savchenko
+    #
+    #     xtime_url = "https://heasarc.gsfc.nasa.gov/cgi-bin/Tools/xTime/xTime.pl"
+    #
+    #     pattern = """<tr>.*?<th scope=row><label for="(.*?)">(.*?)</label></th>.*?<td align=center>.*?</td>.*?<td>(.*?)</td>.*?</tr>"""
+    #
+    #     args = dict(
+    #         time_in_sf=self._trigger_time,
+    #         timesys_in="u",
+    #         timesys_out="u",
+    #         apply_clock_offset="yes")
+    #
+    #
+    #
+    #     try:
+    #
+    #         content = requests.get(xtime_url, params=args).content
+    #
+    #         mission_info = re.findall(pattern, content, re.S)
+    #
+    #         mission_dict['UTC'] = mission_info[0][-1]
+    #         mission_dict[mission_info[7][1]] = mission_info[7][2]  # LIGO
+    #         mission_dict[mission_info[8][1]] = mission_info[8][2]  # NUSTAR
+    #         mission_dict[mission_info[12][1]] = mission_info[12][2]  # RXTE
+    #         mission_dict[mission_info[16][1]] = mission_info[16][2]  # SUZAKU
+    #         mission_dict[mission_info[20][1]] = mission_info[20][2]  # SWIFT
+    #         mission_dict[mission_info[24][1]] = mission_info[24][2]  # CHANDRA
+    #
+    #     except:
+    #
+    #         warnings.warn("You do not have the requests library, cannot get time system from Heasarc "
+    #                       "at this point.")
+    #
+    #         return None
+    #
+    #
+    #
+    #     return mission_dict
+    #
+    # def __repr__(self):
+    #
+    #     return self._output().to_string()
+    #
+    # def _output(self):
+    #
+    #     """
+    #             Examine the currently selected interval
+    #             If connected to the internet, will also look up info for other instruments to compare with
+    #             Fermi.
+    #
+    #             :return: none
+    #             """
+    #     mission_dict = compute_fermi_relative_mission_times(self._trigger_time)
+    #
+    #     fermi_dict = collections.OrderedDict()
+    #
+    #     fermi_dict['Fermi Trigger Time'] = "%.3f" % self._trigger_time
+    #     fermi_dict['Fermi MET OBS Start'] = "%.3f" % self._start_events
+    #     fermi_dict['Fermi MET OBS Stop'] = "%.3f" % self._stop_events
+    #     fermi_dict['Fermi UTC OBS Start'] = self._utc_start
+    #     fermi_dict['Fermi UTC OBS Stop'] = self._utc_stop
+    #
+    #     fermi_df = pd.Series(fermi_dict, index=fermi_dict.keys())
+    #
+    #     if mission_dict is not None:
+    #         mission_df = pd.Series(mission_dict, index=mission_dict.keys())
+    #
+    #         fermi_df = fermi_df.append(mission_df)
+    #
+    #     return fermi_df
+    #

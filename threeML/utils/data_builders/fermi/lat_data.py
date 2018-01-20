@@ -287,41 +287,41 @@ class LLEFile(object):
 
 
 
-    def __repr__(self):
-
-        return  self._output().to_string()
-
-
-    def _output(self):
-
-        """
-                Examine the currently selected interval
-                If connected to the internet, will also look up info for other instruments to compare with
-                Fermi.
-
-                :return: none
-                """
-
-        mission_dict = compute_fermi_relative_mission_times(self._trigger_time)
-
-        fermi_dict = collections.OrderedDict()
-
-        fermi_dict['Fermi Trigger Time'] = "%.3f" % self._trigger_time
-        fermi_dict['Fermi MET OBS Start'] = "%.3f" % self._tstart
-        fermi_dict['Fermi MET OBS Stop'] = "%.3f" % self._tstop
-        fermi_dict['Fermi UTC OBS Start'] = self._utc_start
-        fermi_dict['Fermi UTC OBS Stop'] = self._utc_stop
-
-        fermi_df = pd.Series(fermi_dict, index=fermi_dict.keys())
-
-
-        if mission_dict is not None:
-            mission_df = pd.Series(mission_dict, index=mission_dict.keys())
-
-            fermi_df = fermi_df.append(mission_df)
-
-
-
-        return fermi_df
-
+    # def __repr__(self):
+    #
+    #     return  self._output().to_string()
+    #
+    #
+    # def _output(self):
+    #
+    #     """
+    #             Examine the currently selected interval
+    #             If connected to the internet, will also look up info for other instruments to compare with
+    #             Fermi.
+    #
+    #             :return: none
+    #             """
+    #
+    #     mission_dict = compute_fermi_relative_mission_times(self._trigger_time)
+    #
+    #     fermi_dict = collections.OrderedDict()
+    #
+    #     fermi_dict['Fermi Trigger Time'] = "%.3f" % self._trigger_time
+    #     fermi_dict['Fermi MET OBS Start'] = "%.3f" % self._tstart
+    #     fermi_dict['Fermi MET OBS Stop'] = "%.3f" % self._tstop
+    #     fermi_dict['Fermi UTC OBS Start'] = self._utc_start
+    #     fermi_dict['Fermi UTC OBS Stop'] = self._utc_stop
+    #
+    #     fermi_df = pd.Series(fermi_dict, index=fermi_dict.keys())
+    #
+    #
+    #     if mission_dict is not None:
+    #         mission_df = pd.Series(mission_dict, index=mission_dict.keys())
+    #
+    #         fermi_df = fermi_df.append(mission_df)
+    #
+    #
+    #
+    #     return fermi_df
+    #
 
