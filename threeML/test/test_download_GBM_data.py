@@ -2,11 +2,19 @@ import shutil
 import pytest
 
 from threeML import *
+from threeML.utils.fermi_relative_mission_time import compute_fermi_relative_mission_times
 from threeML.io.network import internet_connection_is_active
 from threeML.exceptions.custom_exceptions import TriggerDoesNotExist
 
 skip_if_internet_is_not_available = pytest.mark.skipif(not internet_connection_is_active(),
                                                        reason="No active internet connection")
+
+
+@skip_if_internet_is_not_available
+@pytest.mark.xfail
+def test_fermi_time_data():
+
+    compute_fermi_relative_mission_times(10676880.000)
 
 
 @skip_if_internet_is_not_available
