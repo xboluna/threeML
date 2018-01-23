@@ -1664,7 +1664,7 @@ class SpectrumLike(PluginPrototype):
 
                 background_counts = self._background_counts
 
-            elif self._background_noise_model is None:
+            elif self._background_noise_model == 'modeled':
 
                 if self._background_plugin is not None:
 
@@ -1675,7 +1675,11 @@ class SpectrumLike(PluginPrototype):
 
                 else:
 
-                    raise NotImplementedError("do not have this model yet")
+                    raise RuntimeError("This is a bug")
+
+            elif self._background_noise_model is None:
+
+                raise RuntimeError('There are no background counts')
 
             else:
 
@@ -1717,7 +1721,7 @@ class SpectrumLike(PluginPrototype):
 
                 background_errors = self._back_count_errors
 
-            elif self._background_noise_model is None:
+            elif self._background_noise_model == 'modeled':
 
                 if self._background_plugin is not None:
 
@@ -1726,9 +1730,14 @@ class SpectrumLike(PluginPrototype):
 
                     background_errors = np.sqrt(self.get_background_model() * self._background_exposure)
 
+
                 else:
 
-                    raise NotImplementedError("do not have this model yet")
+                    raise RuntimeError("This is a bug")
+
+            elif self._background_noise_model is None:
+
+                raise RuntimeError('Tthere are no background count errors')
 
             else:
 
