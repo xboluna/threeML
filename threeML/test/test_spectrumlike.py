@@ -10,7 +10,6 @@ from threeML.utils.OGIP.response import OGIPResponse
 
 np.seterr(all='ignore')
 from threeML.exceptions.custom_exceptions import NegativeBackground
-i
 
 def test_assigning_source_name():
 
