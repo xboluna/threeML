@@ -30,6 +30,7 @@ requirements:
     - astromodels
     - astroquery
     - corner >=1.0.2
+    - chainconsumer
     - pandas
     - requests
     - speclite
@@ -54,6 +55,7 @@ requirements:
     - astromodels
     - astroquery
     - corner >=1.0.2
+    - chainconsumer
     - pandas
     - requests
     - speclite
