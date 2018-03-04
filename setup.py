@@ -129,6 +129,7 @@ setup(
         'iminuit>=1.2',
         'astromodels>=0.4.0',
         'corner>=1.0.2',
+        'chainconsumer',
         'pandas',
         'requests',
         'speclite',
