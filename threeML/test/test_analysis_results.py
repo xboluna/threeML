@@ -2,6 +2,8 @@ import pytest
 import os
 import numpy as np
 
+import astropy.units as u
+
 from threeML.plugins.XYLike import XYLike
 from threeML import Model, DataList, JointLikelihood, PointSource
 from threeML import BayesianAnalysis, Uniform_prior, Log_uniform_prior
@@ -265,6 +267,45 @@ def test_corner_plotting():
 
     ar.corner_plot()
 
+    ar.corner_plot_cc()
+
+
+def test_flux_mle():
+
+    ar = _get_mle_analysis_results()
+
+
+
+    ar.get_point_source_flux(ene_min=1. * u.keV,
+                             ene_max=10. * u.keV,
+                             sources=(),
+                             confidence_level=0.68,
+                             flux_unit='erg/(s cm2)',
+                             use_components=False,
+                             components_to_use=(),
+                             sum_sources=False)
+
+
+    # test unit conversion
+
+    ar.get_point_source_flux(ene_min=1. * u.keV,
+                             ene_max=10. * u.keV,
+                             sources=(),
+                             confidence_level=0.68,
+                             flux_unit='J/(s m2)',
+                             use_components=False,
+                             components_to_use=(),
+                             sum_sources=False)
+
+
+    ar.get_point_source_flux(ene_min=1. * u.Hz,
+                             ene_max=10. * u.Hz,
+                             sources=(),
+                             confidence_level=0.68,
+                             flux_unit='erg/(s cm2)',
+                             use_components=False,
+                             components_to_use=(),
+                             sum_sources=False)
 
 
 
