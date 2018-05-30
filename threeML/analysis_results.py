@@ -1,17 +1,16 @@
+import collections
 import datetime
 import functools
 import inspect
 import math
-from operator import attrgetter
-import collections
-import numpy as np
-import pandas as pd
-import astropy.units as u
 
 import astromodels
-from astromodels.core.my_yaml import my_yaml
+import astropy.units as u
+import numpy as np
+import pandas as pd
 from astromodels.core.model_parser import ModelParser
-
+from astromodels.core.my_yaml import my_yaml
+from astromodels.core.parameter import Parameter
 from corner import corner
 
 try:
@@ -30,13 +29,12 @@ from threeML.exceptions.custom_exceptions import custom_warnings
 from threeML.io.file_utils import sanitize_filename
 from threeML.io.fits_file import fits, FITSFile, FITSExtension
 from threeML.io.rich_display import display
-from threeML.io.table import NumericMatrix, long_path_formatter
+from threeML.io.table import NumericMatrix
 from threeML.io.uncertainty_formatter import uncertainty_formatter
 from threeML.io.results_table import ResultsTable
 from threeML.version import __version__
 from threeML.random_variates import RandomVariates
 from threeML.io.calculate_flux import _calculate_point_source_flux
-from threeML.utils.stats_tools import dic
 from threeML.config.config import threeML_config
 
 # These are special characters which cannot be safely saved in the keyword of a FITS file. We substitute
@@ -118,7 +116,7 @@ def _load_one_results(fits_extension):
 
         # Get covariance matrix
 
-        covariance_matrix = fits_extension.data.field("COVARIANCE").T
+        covariance_matrix = np.atleast_2d(fits_extension.data.field("COVARIANCE").T)
 
         # Instance and return
 
@@ -589,7 +587,7 @@ class _AnalysisResults(object):
 
         if error_type == "equal tail":
 
-            errors_gatherer = RandomVariates.equal_tail_confidence_interval
+            errors_gatherer = RandomVariates.equal_tail_interval
 
         elif error_type == "hpd":
 
@@ -736,6 +734,31 @@ class _AnalysisResults(object):
             # Return the dataframe
             return bayes_results
 
+
+    def get_equal_tailed_interval(self,parameter,cl=0.68):
+        """
+
+        returns the equal tailed interval for the parameter
+
+        :param parameter_path: path of the parameter or parameter instance
+        :param cl: credible interval to obtain
+        :return: (low bound, high bound)
+        """
+
+        if isinstance(parameter,Parameter):
+
+
+            path = parameter.path
+
+        else:
+
+            path = parameter
+
+
+
+        variates = self.get_variates(path)
+
+        return variates.equal_tail_interval(cl)
 
 
 class BayesianResults(_AnalysisResults):
@@ -1239,6 +1262,34 @@ class BayesianResults(_AnalysisResults):
         fig = cc.plot(**_default_plot_args)
 
         return fig
+
+    def get_highest_density_posterior_interval(self,parameter,cl=0.68):
+        """
+
+        returns the highest density posterior interval for that parameter
+
+        :param parameter_path: path of the parameter or parameter instance
+        :param cl: credible interval to obtain
+        :return: (low bound, high bound)
+        """
+
+        if isinstance(parameter,Parameter):
+
+
+            path = parameter.path
+
+        else:
+
+            path = parameter
+
+
+
+        variates = self.get_variates(path)
+
+        return variates.highest_posterior_density_interval(cl)
+
+
+
 
 
 

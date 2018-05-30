@@ -1,18 +1,17 @@
 import copy
+
 import pandas as pd
-import numpy as np
 
 from threeML.plugins.SpectrumLike import SpectrumLike
-from threeML.plugins.spectrum.binned_spectrum import BinnedSpectrumWithDispersion, ChannelSet
-from threeML.plugins.OGIP.response import InstrumentResponse
-
-from astromodels import PointSource, Model
+from threeML.utils.OGIP.response import InstrumentResponse
+from threeML.utils.spectrum.binned_spectrum import BinnedSpectrumWithDispersion, ChannelSet
 
 __instrument_name = "General binned spectral data with energy dispersion"
 
 
 class DispersionSpectrumLike(SpectrumLike):
-    def __init__(self, name, observation, background=None, background_exposure=None,verbose=True):
+
+    def __init__(self, name, observation, background=None, background_exposure=None,verbose=True, tstart=None, tstop=None):
         """
         A plugin for generic spectral data with energy dispersion, accepts an observed binned spectrum,
         and a background binned spectrum or plugin with the background data.
@@ -48,7 +47,9 @@ class DispersionSpectrumLike(SpectrumLike):
                                                      observation=observation,
                                                      background=background,
                                                      background_exposure=background_exposure,
-                                                     verbose=verbose)
+                                                     verbose=verbose,
+                                                     tstart=tstart,
+                                                     tstop=tstop)
 
     def set_model(self, likelihoodModel):
         """

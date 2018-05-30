@@ -109,7 +109,7 @@ class EventList(TimeSeries):
         :param start: start of the interval to bin on
         :param stop:  stop of the interval ot bin on
         :param sigma: sigma-level of the bins
-        :param mask: (bool) use the energy mask to decide on significance
+        :param mask: (bool) use the energy mask to decide on ,significance
         :param min_counts:  minimum number of counts per bin
         :return:
         """
@@ -306,7 +306,7 @@ class EventList(TimeSeries):
             bkg_selection = None
 
 
-        binned_light_curve_plot(time_bins=time_bins,
+        return binned_light_curve_plot(time_bins=time_bins,
                                 cnts=cnts,
                                 width=width,
                                 bkg=bkg,

@@ -29,15 +29,14 @@ class GoodnessOfFit(object):
 
     def get_simulated_data(self, id):
 
+        # Make sure we start from the best fit model
+        self._jl_instance.restore_best_fit()
+
         # Generate a new data set for each plugin contained in the data list
 
         new_datas = []
 
         for dataset in self._jl_instance.data_list.values():
-
-            # Make sure we start from the best fit model
-
-            dataset.set_model(self._best_fit_model)
 
             new_data = dataset.get_simulated_dataset("%s_sim" % dataset.name)
 
@@ -71,9 +70,9 @@ class GoodnessOfFit(object):
         jl_set = JointLikelihoodSet(self.get_simulated_data, self.get_model, n_iterations, iteration_name='simulation')
 
         # Use the same minimizer as in the joint likelihood object
+        # NOTE: we use a clone so that the original best fit will not be touched
 
-        minimizer_name, algorithm, callback = self._jl_instance.minimizer_in_use
-        jl_set.set_minimizer(minimizer_name, algorithm, callback)
+        jl_set.set_minimizer(self._jl_instance.minimizer_in_use)
 
         # Run the set
         data_frame, like_data_frame = jl_set.go(continue_on_failure=continue_on_failure)
