@@ -431,16 +431,17 @@ class BayesianAnalysis(object):
             if rank !=0:
 
                 # let these guys take a break
-                time.sleep(5)
+                time.sleep(1)
 
                 # these engines do not need to read
                 process_fit = False
+                
 
             else:
 
                 # wait for a moment to allow it all to turn off
-                time.sleep(5)
-
+                time.sleep(1)
+                print('here')
                 process_fit = True
 
         else:
