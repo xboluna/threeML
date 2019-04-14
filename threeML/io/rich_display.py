@@ -5,6 +5,7 @@ def fallback_display(x):
 
     print(x)
 
+
 try:
 
     from IPython.display import display
@@ -12,5 +13,3 @@ try:
 except ImportError:
 
     display = fallback_display
-
-

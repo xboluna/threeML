@@ -3,7 +3,6 @@ import numpy as np
 from threeML.io.uncertainty_formatter import uncertainty_formatter
 
 
-
 class RandomVariates(np.ndarray):
     """
     A subclass of np.array which is meant to contain samples for one parameter. This class contains methods to easily
@@ -25,11 +24,12 @@ class RandomVariates(np.ndarray):
     def __array_finalize__(self, obj):
 
         # see InfoArray.__array_finalize__ for comments
-        if obj is None: return
+        if obj is None:
+            return
 
         # Add the value
 
-        self._orig_value = getattr(obj, '_orig_value', None)
+        self._orig_value = getattr(obj, "_orig_value", None)
 
     def __array_wrap__(self, out_arr):
 
@@ -101,11 +101,14 @@ class RandomVariates(np.ndarray):
 
         # Now compute the width of all intervals that might be the one we are looking for
 
-        interval_width = ordered[index_of_rightmost_possibility:] - ordered[:index_of_leftmost_possibility]
+        interval_width = (
+            ordered[index_of_rightmost_possibility:]
+            - ordered[:index_of_leftmost_possibility]
+        )
 
         # This might happen if there are too few values
         if len(interval_width) == 0:
-            raise RuntimeError('Too few elements for interval calculation')
+            raise RuntimeError("Too few elements for interval calculation")
 
         # Find the index of the shortest interval
 
@@ -117,7 +120,6 @@ class RandomVariates(np.ndarray):
         hpd_right_bound = ordered[idx_of_minimum + index_of_rightmost_possibility]
 
         return hpd_left_bound, hpd_right_bound
-
 
     def equal_tail_interval(self, cl=0.68):
         """
@@ -135,7 +137,9 @@ class RandomVariates(np.ndarray):
 
         half_cl = cl / 2.0 * 100.0
 
-        low_bound, hi_bound = np.percentile(np.asarray(self), [50.0 - half_cl, 50.0 + half_cl])
+        low_bound, hi_bound = np.percentile(
+            np.asarray(self), [50.0 - half_cl, 50.0 + half_cl]
+        )
 
         return float(low_bound), float(hi_bound)
 

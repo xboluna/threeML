@@ -1,7 +1,8 @@
 # Leave these imports here, even though they look not used in the module, as they are used in the tutorial
 
 from threeML.minimizer.grid_minimizer import GridMinimizer
-#from threeML.minimizer.ROOT_minimizer import ROOTMinimizer
+
+# from threeML.minimizer.ROOT_minimizer import ROOTMinimizer
 from threeML.minimizer.minuit_minimizer import MinuitMinimizer
 from threeML.minimizer.grid_minimizer import GridMinimizer
 
@@ -19,7 +20,6 @@ import numpy as np
 # You don't need to do this in a normal 3ML analysis
 # This is only for illustrative purposes
 def get_callback(jl):
-
     def global_minim_callback(best_value, minimum):
 
         jl.likelihood_model.test.spectrum.main.shape.jump_tracking()
@@ -28,7 +28,6 @@ def get_callback(jl):
 
 
 class JointLikelihoodWrap(JointLikelihood):
-
     def fit(self, *args, **kwargs):
 
         self.likelihood_model.test.spectrum.main.shape.reset_tracking()
@@ -37,7 +36,7 @@ class JointLikelihoodWrap(JointLikelihood):
         with use_astromodels_memoization(False):
 
             try:
-    
+
                 super(JointLikelihoodWrap, self).fit(*args, **kwargs)
 
             except:
@@ -95,7 +94,7 @@ def plot_likelihood_function(jl, fig=None):
 
     if fig is None:
 
-        fig, sub = plt.subplots(1,1)
+        fig, sub = plt.subplots(1, 1)
 
     original_mu = jl.likelihood_model.test.spectrum.main.shape.mu.value
 
@@ -121,10 +120,14 @@ def plot_minimizer_path(jl, points=False):
     :return:
     """
 
-    qx_ = np.array(jl.likelihood_model.test.spectrum.main.shape._traversed_points, dtype=float)
-    qy_ = np.array(jl.likelihood_model.test.spectrum.main.shape._returned_values, dtype=float)
+    qx_ = np.array(
+        jl.likelihood_model.test.spectrum.main.shape._traversed_points, dtype=float
+    )
+    qy_ = np.array(
+        jl.likelihood_model.test.spectrum.main.shape._returned_values, dtype=float
+    )
 
-    fig, sub = plt.subplots(1,1)
+    fig, sub = plt.subplots(1, 1)
 
     # Every np.nan divide a set
     qx_sets = np.split(qx_, np.where(~np.isfinite(qy_))[0])
@@ -138,16 +141,22 @@ def plot_minimizer_path(jl, points=False):
 
         for i, (qx, qy) in enumerate(zip(qx_sets, qy_sets)):
 
-            sub.quiver(qx[:-1], qy[:-1],
-                       qx[1:] - qx[:-1], qy[1:] - qy[:-1],
-                       scale_units='xy', angles='xy', scale=1,
-                       color=cmap(i))
+            sub.quiver(
+                qx[:-1],
+                qy[:-1],
+                qx[1:] - qx[:-1],
+                qy[1:] - qy[:-1],
+                scale_units="xy",
+                angles="xy",
+                scale=1,
+                color=cmap(i),
+            )
 
     else:
 
         for i, (qx, qy) in enumerate(zip(qx_sets, qy_sets)):
 
-            sub.plot(qx, qy, '.')
+            sub.plot(qx, qy, ".")
 
     # Now plot the likelihood function
     plot_likelihood_function(jl, fig)
@@ -156,7 +165,6 @@ def plot_minimizer_path(jl, points=False):
 
 
 class CustomLikelihoodLike(PluginPrototype):
-
     def __init__(self, name):
 
         self._minus_log_l = None
@@ -183,7 +191,7 @@ class CustomLikelihoodLike(PluginPrototype):
         """
 
         # Gather values
-        values = map(lambda x:x.value, self._free_parameters.values())
+        values = map(lambda x: x.value, self._free_parameters.values())
 
         return -self._minus_log_l(*values)
 
@@ -297,7 +305,9 @@ class Complex(Simple):
 
         for i in range(3):
 
-          self._gau += Gaussian(F=100.0 / (i+1), mu= 10 + (i * 25), sigma=5 / (i+1))
+            self._gau += Gaussian(
+                F=100.0 / (i + 1), mu=10 + (i * 25), sigma=5 / (i + 1)
+            )
 
         self._returned_values = []
         self._traversed_points = []

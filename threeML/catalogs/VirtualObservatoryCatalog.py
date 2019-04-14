@@ -1,9 +1,10 @@
 from astromodels import *
 
-#from astropy.vo.client.vos_catalog import VOSCatalog
+# from astropy.vo.client.vos_catalog import VOSCatalog
 from astroquery.vo_conesearch.vos_catalog import VOSCatalog
 from astroquery.vo_conesearch import conesearch
-#from astropy.vo.client import conesearch
+
+# from astropy.vo.client import conesearch
 
 from astropy.vo.client.exceptions import VOSError
 from astropy.coordinates.name_resolve import get_icrs_coordinates
@@ -18,15 +19,13 @@ class ConeSearchFailed(RuntimeError):
 
 
 class VirtualObservatoryCatalog(object):
-    
     def __init__(self, name, url, description):
-                
+
         self.catalog = VOSCatalog.create(name, url, description=description)
 
         self._get_vo_table_from_source()
 
         self._last_query_results = None
-
 
     def search_around_source(self, source_name, radius):
         """
@@ -55,26 +54,32 @@ class VirtualObservatoryCatalog(object):
         :return: a table with the list of sources
         """
 
-        skycoord = SkyCoord(ra=ra * u.degree, dec=dec * u.degree, frame='icrs')
+        skycoord = SkyCoord(ra=ra * u.degree, dec=dec * u.degree, frame="icrs")
 
         # First check that we have an active internet connection
         if not internet_connection_is_active():  # pragma: no cover
 
-            raise ConeSearchFailed("It looks like you don't have an active internet connection. Cannot continue.")
+            raise ConeSearchFailed(
+                "It looks like you don't have an active internet connection. Cannot continue."
+            )
 
         with warnings.catch_warnings():
-            
-            #Ignore all warnings, which are many from the conesearch module
-            
-            warnings.simplefilter('ignore')
-            
+
+            # Ignore all warnings, which are many from the conesearch module
+
+            warnings.simplefilter("ignore")
+
             try:
-                
-                votable = conesearch.conesearch(skycoord, radius, 
-                                                catalog_db=self.catalog,
-                                                verb=3, verbose=True,
-                                                cache=False)
-            
+
+                votable = conesearch.conesearch(
+                    skycoord,
+                    radius,
+                    catalog_db=self.catalog,
+                    verb=3,
+                    verbose=True,
+                    cache=False,
+                )
+
             except VOSError as exc:  # Pragma: no cover
 
                 # Download failed
@@ -87,11 +92,13 @@ class VirtualObservatoryCatalog(object):
 
                 table = votable.to_table()
 
-                self._last_query_results = table.to_pandas().set_index('name').sort_values("Search_Offset")
+                self._last_query_results = (
+                    table.to_pandas().set_index("name").sort_values("Search_Offset")
+                )
 
                 out = self.apply_format(table)
 
-                #This is needed to avoid strange errors
+                # This is needed to avoid strange errors
                 del votable
                 del table
 
@@ -123,8 +130,6 @@ class VirtualObservatoryCatalog(object):
 
         raise NotImplementedError("You have to override this!")
 
-
-
     def query(self, query):
         """
         query the entire VO table for the given logical argument. Queries are in the form of pandas
@@ -137,12 +142,12 @@ class VirtualObservatoryCatalog(object):
         :return:
         """
 
-        assert type(query) == str, 'query must be a string'
+        assert type(query) == str, "query must be a string"
 
         query_results = self._vo_dataframe.query(query)
 
         table = astro_table.Table.from_pandas(query_results)
-        name_column = astro_table.Column(name='name', data=query_results.index)
+        name_column = astro_table.Column(name="name", data=query_results.index)
         table.add_column(name_column, index=0)
 
         out = self.apply_format(table)
@@ -167,17 +172,17 @@ class VirtualObservatoryCatalog(object):
 
                 valid_sources.append(source)
 
-
-
         if valid_sources:
 
-            query_string = ' | '.join(map(lambda x: '(index == "%s")' % x, valid_sources))
+            query_string = " | ".join(
+                map(lambda x: '(index == "%s")' % x, valid_sources)
+            )
 
             query_results = self._vo_dataframe.query(query_string)
 
             table = astro_table.Table.from_pandas(query_results)
 
-            name_column = astro_table.Column(name='name', data=query_results.index)
+            name_column = astro_table.Column(name="name", data=query_results.index)
             table.add_column(name_column, index=0)
 
             out = self.apply_format(table)
@@ -186,17 +191,13 @@ class VirtualObservatoryCatalog(object):
 
             return out
 
-
         else:
 
             RuntimeError("There were not valid sources in your search")
 
-
     def _source_is_valid(self, source):
 
         raise NotImplementedError("You have to override this!")
-
-
 
     @property
     def result(self):
@@ -206,7 +207,3 @@ class VirtualObservatoryCatalog(object):
         """
 
         return self._last_query_results.copy(deep=True)
-
-
-
-

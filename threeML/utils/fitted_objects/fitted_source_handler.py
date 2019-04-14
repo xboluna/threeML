@@ -9,7 +9,16 @@ from astromodels import use_astromodels_memoization
 
 
 class GenericFittedSourceHandler(object):
-    def __init__(self, analysis_result, new_function, parameter_names, parameters, confidence_level, equal_tailed, *independent_variable_range):
+    def __init__(
+        self,
+        analysis_result,
+        new_function,
+        parameter_names,
+        parameters,
+        confidence_level,
+        equal_tailed,
+        *independent_variable_range
+    ):
         """
         A generic 3ML fitted source  post-processor. This should be sub-classed in general
 
@@ -27,7 +36,7 @@ class GenericFittedSourceHandler(object):
         self._analysis = analysis_result
         self._independent_variable_range = independent_variable_range
         self._cl = confidence_level
-        self._equal_tailed=equal_tailed
+        self._equal_tailed = equal_tailed
         self._function = new_function
         self._parameter_names = parameter_names
         self._parameters = parameters
@@ -37,7 +46,6 @@ class GenericFittedSourceHandler(object):
 
         if len(self._independent_variable_range) == 1:
             self._independent_variable_range = (self._independent_variable_range[0],)
-
 
         # figure out the output shape of the best fit and errors
 
@@ -50,8 +58,6 @@ class GenericFittedSourceHandler(object):
         # fold the function through its independent values
         self._evaluate()
 
-
-
     def __add__(self, other):
         """
         The basics of adding are handled in the VariatesContainer
@@ -60,12 +66,13 @@ class GenericFittedSourceHandler(object):
         """
 
         # assure that the shapes will be the same
-        assert other._out_shape == self._out_shape, 'cannot sum together arrays with different shapes!'
+        assert (
+            other._out_shape == self._out_shape
+        ), "cannot sum together arrays with different shapes!"
 
         # this will get the value container for the other values
 
         return self.values + other.values
-
 
     def __radd__(self, other):
 
@@ -86,11 +93,9 @@ class GenericFittedSourceHandler(object):
 
         return value
 
-
     def update_tag(self, tag, value):
 
         pass
-
 
     def _build_propagated_function(self):
         """
@@ -103,7 +108,7 @@ class GenericFittedSourceHandler(object):
 
         # because we might be using composite functions,
         # we have to keep track of parameter names in a non-elegant way
-        for par,name in zip(self._parameters.values(), self._parameter_names):
+        for par, name in zip(self._parameters.values(), self._parameter_names):
 
             if par.free:
 
@@ -124,7 +129,9 @@ class GenericFittedSourceHandler(object):
 
         # create the propagtor
 
-        self._propagated_function = self._analysis_results.propagate(self._function, **arguments)
+        self._propagated_function = self._analysis_results.propagate(
+            self._function, **arguments
+        )
 
     def _evaluate(self):
         """
@@ -146,11 +153,12 @@ class GenericFittedSourceHandler(object):
 
                 with use_astromodels_memoization(False):
 
-                    for variables in itertools.product(*self._independent_variable_range):
+                    for variables in itertools.product(
+                        *self._independent_variable_range
+                    ):
                         variates.append(self._propagated_function(*variables))
 
                         p.increase()
-
 
         # otherwise just evaluate
         else:
@@ -159,7 +167,9 @@ class GenericFittedSourceHandler(object):
 
         # create a variates container
 
-        self._propagated_variates = VariatesContainer(variates, self._out_shape, self._cl, self._transform, self._equal_tailed)
+        self._propagated_variates = VariatesContainer(
+            variates, self._out_shape, self._cl, self._transform, self._equal_tailed
+        )
 
     @property
     def values(self):
@@ -216,8 +226,6 @@ class GenericFittedSourceHandler(object):
         return self._propagated_variates.lower_error
 
 
-
-
 def transform(method):
     """
     A wrapper to call the _transform method for outputs of Variates container class
@@ -233,9 +241,7 @@ def transform(method):
 
 
 class VariatesContainer(object):
-
-
-    def __init__(self,values, out_shape , cl, transform, equal_tailed=True):
+    def __init__(self, values, out_shape, cl, transform, equal_tailed=True):
         """
         A container to store an *List* of RandomVariates and transform their outputs
         to the appropriate shape. This cannot be done with normal numpy array operations
@@ -256,17 +262,15 @@ class VariatesContainer(object):
         :param equal_tailed: whether to use equal-tailed error intervals or not
         """
 
+        self._values = values  # type: list
 
+        self._out_shape = out_shape  # type: tuple
 
-        self._values = values # type: list
+        self._cl = cl  # type: float
 
-        self._out_shape = out_shape #type: tuple
+        self._equal_tailed = equal_tailed  # type: bool
 
-        self._cl = cl #type: float
-
-        self._equal_tailed = equal_tailed #type: bool
-
-        self._transform = transform #type: callable
+        self._transform = transform  # type: callable
 
         # calculate mean and median and transform them into the provided
         # output shape
@@ -307,8 +311,6 @@ class VariatesContainer(object):
 
         self._upper_error = np.array(upper_error).reshape(self._out_shape)
         self._lower_error = np.array(lower_error).reshape(self._out_shape)
-
-
 
         samples = []
 
@@ -371,7 +373,6 @@ class VariatesContainer(object):
 
         return self._upper_error
 
-
     @property
     @transform
     def lower_error(self):
@@ -390,16 +391,23 @@ class VariatesContainer(object):
         :return:
         """
 
-        assert other._out_shape == self._out_shape, 'cannot sum together arrays with different shapes!'
+        assert (
+            other._out_shape == self._out_shape
+        ), "cannot sum together arrays with different shapes!"
 
         # this will get the value container for the other values
 
         other_values = other.values
 
+        summed_values = [v + vo for v, vo in zip(self._values, other_values)]
 
-        summed_values = [v+vo for v,vo in zip(self._values, other_values)]
-
-        return VariatesContainer(summed_values, self._out_shape, self._cl, self._transform, self._equal_tailed)
+        return VariatesContainer(
+            summed_values,
+            self._out_shape,
+            self._cl,
+            self._transform,
+            self._equal_tailed,
+        )
 
     def __radd__(self, other):
 
@@ -413,12 +421,10 @@ class VariatesContainer(object):
 
             summed_values = [v + vo for v, vo in zip(self._values, other_values)]
 
-            return VariatesContainer(summed_values, self._out_shape, self._cl, self._transform, self._equal_tailed)
-
-
-
-
-
-
-
-
+            return VariatesContainer(
+                summed_values,
+                self._out_shape,
+                self._cl,
+                self._transform,
+                self._equal_tailed,
+            )

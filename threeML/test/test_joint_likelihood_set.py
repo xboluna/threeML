@@ -16,19 +16,21 @@ def get_data(id):
 
 def test_joint_likelihood_set():
 
-    jlset = JointLikelihoodSet(data_getter=get_data, model_getter=get_model, n_iterations=10)
+    jlset = JointLikelihoodSet(
+        data_getter=get_data, model_getter=get_model, n_iterations=10
+    )
 
     jlset.go(compute_covariance=False)
 
 
 def test_joint_likelihood_set_parallel():
 
-    jlset = JointLikelihoodSet(data_getter=get_data, model_getter=get_model, n_iterations=10)
+    jlset = JointLikelihoodSet(
+        data_getter=get_data, model_getter=get_model, n_iterations=10
+    )
 
     with parallel_computation(start_cluster=False):
 
         res = jlset.go(compute_covariance=False)
 
     print(res)
-
-

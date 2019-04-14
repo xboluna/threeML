@@ -31,8 +31,9 @@ from threeML.io.package_data import get_path_of_data_file
 from threeML.utils.OGIP.response import InstrumentResponse, OGIPResponse
 
 
-skip_if_pyxspec_is_not_available = pytest.mark.skipif(not has_pyxspec,
-                                                       reason="No pyXspec installed")
+skip_if_pyxspec_is_not_available = pytest.mark.skipif(
+    not has_pyxspec, reason="No pyXspec installed"
+)
 
 
 def get_matrix_elements():
@@ -51,7 +52,6 @@ def get_matrix_elements():
     ebounds = [1.0, 2.5, 4.5, 5.0]
 
     return matrix, mc_energies, ebounds
-
 
 
 @skip_if_pyxspec_is_not_available
@@ -104,7 +104,9 @@ def test_OGIP_response_against_xspec():
         # Get path of response file
         rsp_file = get_path_of_data_file("ogip_test_gbm_n6.rsp")
 
-        fs1 = xspec.FakeitSettings(rsp_file, exposure=1.0, fileName="_fake_spectrum.pha")
+        fs1 = xspec.FakeitSettings(
+            rsp_file, exposure=1.0, fileName="_fake_spectrum.pha"
+        )
 
         xspec.AllData.fakeit(noWrite=True, applyStats=False, settings=fs1)
 
@@ -132,7 +134,9 @@ def test_OGIP_response_against_xspec():
 
         arf_file = get_path_of_data_file("ogip_test_xmm_pn.arf")
 
-        fs1 = xspec.FakeitSettings(rsp_file, arf_file, exposure=1.0, fileName="_fake_spectrum.pha")
+        fs1 = xspec.FakeitSettings(
+            rsp_file, arf_file, exposure=1.0, fileName="_fake_spectrum.pha"
+        )
 
         xspec.AllData.fakeit(noWrite=True, applyStats=False, settings=fs1)
 
@@ -211,7 +215,9 @@ def test_response_against_xspec():
 
         # Get path of response file
 
-        fs1 = xspec.FakeitSettings(temp_file, exposure=1.0, fileName="_fake_spectrum.pha")
+        fs1 = xspec.FakeitSettings(
+            temp_file, exposure=1.0, fileName="_fake_spectrum.pha"
+        )
 
         xspec.AllData.fakeit(noWrite=True, applyStats=False, settings=fs1)
 

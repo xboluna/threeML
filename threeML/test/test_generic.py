@@ -31,7 +31,7 @@ def test_poisson_classes():
 
     expected = alpha * Noff
 
-    pr = PoissonResiduals(Non=Non,Noff=Noff,alpha=alpha)
+    pr = PoissonResiduals(Non=Non, Noff=Noff, alpha=alpha)
 
     assert pr.net == Non - expected
     assert pr.expected == expected
@@ -41,7 +41,7 @@ def test_poisson_classes():
     net = 0
     Noff = 1000
     Non = Noff + net
-    alpha = .1
+    alpha = 0.1
 
     expected = alpha * Noff
 
@@ -52,8 +52,7 @@ def test_poisson_classes():
 
     one_side = pr.significance_one_side()
 
-
-    sig = Significance(Non=Non,Noff=Noff)
+    sig = Significance(Non=Non, Noff=Noff)
 
     res = sig.known_background()
     res = sig.li_and_ma()

@@ -17,8 +17,14 @@ import pandas as pd
 
 
 class JointLikelihoodSet(object):
-
-    def __init__(self, data_getter, model_getter, n_iterations, iteration_name='interval', preprocessor=None):
+    def __init__(
+        self,
+        data_getter,
+        model_getter,
+        n_iterations,
+        iteration_name="interval",
+        preprocessor=None,
+    ):
 
         # Store the data and model getter
 
@@ -39,8 +45,9 @@ class JointLikelihoodSet(object):
 
             # Only one instance, let's check that it is actually a model
 
-            assert isinstance(model_or_models, Model), "The model getter function should return a model or a list of " \
-                                                       "models"
+            assert isinstance(model_or_models, Model), (
+                "The model getter function should return a model or a list of " "models"
+            )
 
             # Save that
             self._n_models = 1
@@ -56,7 +63,9 @@ class JointLikelihoodSet(object):
             # Check that all models are instances of Model
             for this_model in model_or_models:
 
-                assert isinstance(this_model, Model), "The model getter function should return a model or a list of models"
+                assert isinstance(
+                    this_model, Model
+                ), "The model getter function should return a model or a list of models"
 
             # No need for a wrapper in this case
 
@@ -75,7 +84,7 @@ class JointLikelihoodSet(object):
 
         # Default minimizer is minuit
 
-        self._minimization = LocalMinimization('minuit')
+        self._minimization = LocalMinimization("minuit")
 
         # By default, crash if a fit fails
 
@@ -97,9 +106,10 @@ class JointLikelihoodSet(object):
 
         else:
 
-            assert minimizer.upper() in _minimizers, \
-                "Minimizer %s is not available on this system. " \
+            assert minimizer.upper() in _minimizers, (
+                "Minimizer %s is not available on this system. "
                 "Available minimizers: %s" % (minimizer, ",".join(_minimizers.keys()))
+            )
 
             # The string can only specify a local minimization. This will return an error if that is not the case.
             # In order to setup global optimization the user needs to use the GlobalMinimization factory directly
@@ -177,7 +187,9 @@ class JointLikelihoodSet(object):
 
         try:
 
-            model_results, logl_results = jl.fit(quiet=True, compute_covariance=self._compute_covariance)
+            model_results, logl_results = jl.fit(
+                quiet=True, compute_covariance=self._compute_covariance
+            )
 
         except Exception as e:
 
@@ -198,7 +210,13 @@ class JointLikelihoodSet(object):
 
         return model_results, logl_results
 
-    def go(self, continue_on_failure=True, compute_covariance=False, verbose=False, **options_for_parallel_computation):
+    def go(
+        self,
+        continue_on_failure=True,
+        compute_covariance=False,
+        verbose=False,
+        **options_for_parallel_computation
+    ):
 
         # Generate the data frame which will contain all results
 
@@ -212,14 +230,15 @@ class JointLikelihoodSet(object):
 
         # let's iterate, perform the fit and fill the data frame
 
-        if threeML_config['parallel']['use-parallel']:
+        if threeML_config["parallel"]["use-parallel"]:
 
             # Parallel computation
 
             client = ParallelClient(**options_for_parallel_computation)
 
-            results = client.execute_with_progress_bar(self.worker, range(self._n_iterations))
-
+            results = client.execute_with_progress_bar(
+                self.worker, range(self._n_iterations)
+            )
 
         else:
 
@@ -227,7 +246,9 @@ class JointLikelihoodSet(object):
 
             results = []
 
-            with progress_bar(self._n_iterations, title='Goodness of fit computation') as p:
+            with progress_bar(
+                self._n_iterations, title="Goodness of fit computation"
+            ) as p:
 
                 for i in range(self._n_iterations):
 
@@ -235,13 +256,19 @@ class JointLikelihoodSet(object):
 
                     p.increase()
 
-        assert len(results) == self._n_iterations, "Something went wrong, I have %s results " \
-                                                   "for %s intervals" % (len(results), self._n_iterations)
+        assert len(results) == self._n_iterations, (
+            "Something went wrong, I have %s results "
+            "for %s intervals" % (len(results), self._n_iterations)
+        )
 
         # Store the results in the data frames
 
-        parameter_frames = pd.concat(map(lambda x: x[0], results), keys=range(self._n_iterations))
-        like_frames = pd.concat(map(lambda x: x[1], results), keys=range(self._n_iterations))
+        parameter_frames = pd.concat(
+            map(lambda x: x[0], results), keys=range(self._n_iterations)
+        )
+        like_frames = pd.concat(
+            map(lambda x: x[1], results), keys=range(self._n_iterations)
+        )
 
         # Store a list with all results (this is a list of lists, each list contains the results for the different
         # iterations for the same model)
@@ -329,6 +356,6 @@ class JointLikelihoodSetAnalyzer(object):
         # Restore best fit parameters
         for parameter in this_model.free_parameters:
 
-            this_model[parameter].value = sub_frame['value'][parameter]
+            this_model[parameter].value = sub_frame["value"][parameter]
 
         return this_model, this_data

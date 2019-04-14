@@ -22,12 +22,17 @@ def check_results(fit_results):
 
     expected_results = [2.531028, -1.1831566000728451]
 
-    assert np.isclose(fit_results['value']['bn090217206.spectrum.main.Powerlaw.K'],
-                      expected_results[0], rtol=0.1)
+    assert np.isclose(
+        fit_results["value"]["bn090217206.spectrum.main.Powerlaw.K"],
+        expected_results[0],
+        rtol=0.1,
+    )
 
-    assert np.isclose(fit_results['value']['bn090217206.spectrum.main.Powerlaw.index'],
-                      expected_results[1], rtol=0.1)
-
+    assert np.isclose(
+        fit_results["value"]["bn090217206.spectrum.main.Powerlaw.index"],
+        expected_results[1],
+        rtol=0.1,
+    )
 
 
 def test_bayes_constructor(fitted_joint_likelihood_bn090217206_nai):
@@ -67,6 +72,7 @@ def test_multinest(completed_bn090217206_bayesian_analysis):
 
     check_results(res)
 
+
 # def test_parallel_temp():
 #
 #     powerlaw.index.prior = Uniform_prior(lower_bound=-5.0, upper_bound=5.0)
@@ -79,14 +85,13 @@ def test_multinest(completed_bn090217206_bayesian_analysis):
 #
 #
 
+
 def test_bayes_plots(completed_bn090217206_bayesian_analysis):
 
     bayes, samples = completed_bn090217206_bayesian_analysis
 
-
-
     with pytest.raises(AssertionError):
-        bayes.convergence_plots(n_samples_in_each_subset=100,n_subsets=2000)
+        bayes.convergence_plots(n_samples_in_each_subset=100, n_subsets=2000)
 
     bayes.convergence_plots(n_samples_in_each_subset=10, n_subsets=5)
 
