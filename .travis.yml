@@ -12,11 +12,6 @@ env:
 
 
 
-services:
-- docker
-
-
-
 matrix:
 
   include:
@@ -27,7 +22,6 @@ matrix:
 
       python: 2.7
       env: TRAVIS_PYTHON_VERSION=2.7
-
 
            
     - os: osx
