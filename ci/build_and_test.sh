@@ -91,7 +91,7 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 
     export CFLAGS="-m64 -I${CONDA_PREFIX}/include"
     export CXXFLAGS="-DBOOST_MATH_DISABLE_FLOAT128 -m64 -I${CONDA_PREFIX}/include"
-    pip install git+https://github.com/giacomov/cthreeML.git --no-deps --upgrade
+    pip install git+https://github.com/threeML/cthreeML.git --no-deps --upgrade
 
     # Make sure we can load the HAWC plugin
     python -c "from threeML.plugins.HAWCLike import HAWCLike"
