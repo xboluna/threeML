@@ -14,16 +14,7 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ compiler('fortran') }}
-    - xspec-modelsonly-lite
-
-
-
-
-  
-  build:
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
-    - {{ compiler('fortran') }}
+#    - xspec-modelsonly-lite
 
   host:
     - python
