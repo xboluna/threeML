@@ -15,13 +15,13 @@ requirements:
 
   host:
 #    - toolchain
-    - python x.x
+    - python 
     - boost <1.65
 #    - numpy
 #    - gcc
 
   run:
-    - python x.x
+    - python
     - boost <1.65
     - numpy
  #   - libgcc
