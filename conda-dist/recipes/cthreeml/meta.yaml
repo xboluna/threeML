@@ -7,17 +7,24 @@ source:
 
 requirements:
   build:
-    - toolchain
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ compiler('fortran') }}
+
+
+
+  host:
+#    - toolchain
     - python x.x
     - boost <1.65
-    - numpy
-    - gcc
+#    - numpy
+#    - gcc
 
   run:
     - python x.x
     - boost <1.65
     - numpy
-    - libgcc
+ #   - libgcc
 
 test:
   commands:
