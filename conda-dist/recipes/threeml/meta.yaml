@@ -8,12 +8,17 @@ source:
 #    git_url: https://github.com/giacomov/3ML.git
   path: ../../../
 
-build:
-  script: python -m pip install --no-deps --ignore-installed .
-  skip: true  # [win]
-  skip: true  # [py3k]
-
 requirements:
+
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - {{ compiler('fortran') }}
+    - xspec-modelsonly-lite
+
+
+
+
   
   build:
     - {{ compiler('c') }}
@@ -29,7 +34,7 @@ requirements:
     - astropy >=1.0.3
     - matplotlib
     - uncertainties
-    - pyyaml
+    - pyyaml==3.13
     - dill
     - iminuit >=1.2
     - astromodels
@@ -53,7 +58,7 @@ requirements:
     - astropy >=1.0.3
     - matplotlib
     - uncertainties
-    - pyyaml
+    - pyyaml==3.13
     - dill
     - iminuit >=1.2
     - astromodels
@@ -70,6 +75,15 @@ requirements:
     - xz
     - py
 
+
+
+build:
+  script: python -m pip install --no-deps --ignore-installed .
+  skip: true  # [win]
+  skip: true  # [py3k]
+
+
+    
 #test:
 #  # Python imports
 #  commands:
@@ -77,7 +91,7 @@ requirements:
 
 
 about:
-  home: https://github.com/giacomov/3ML
+  home: https://github.com/threeML/threeml
   license: BSD-3
   summary: 'The Multi-Mission Maximum Likelihood framework'
   license_family: BSD
@@ -85,4 +99,6 @@ about:
 extra:
   recipe-maintainers:
     - giacomov
+    - grburgess
+    
 
