@@ -3,7 +3,7 @@ package:
   version: "1.0.3"
 
 source:
-  git_url: https://github.com/giacomov/cthreeML.git
+  git_url: https://github.com/threeML/cthreeML.git
 
 requirements:
   build:
@@ -30,7 +30,7 @@ test:
 
 
 about:
-  home: https://github.com/giacomov/cthreeML
+  home: https://github.com/threeML/cthreeML
   license: BSD-3
   summary: 'The C/C++ bridge for the Multi-Mission Maximum Likelihood framework (github.com/giacomov/3ML)'
   license_family: BSD
