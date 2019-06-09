@@ -21,17 +21,15 @@ matrix:
         - docker
 
       python: 2.7.16
-      env: TRAVIS_PYTHON_VERSION=2.7
-
+      env: TRAVIS_PYTHON_VERSION=2.7.16
            
     - os: osx
       python: 2.7.16
-      env: TRAVIS_PYTHON_VERSION=2.7
+      env: TRAVIS_PYTHON_VERSION=2.7.16
            
     - os: linux
       services:
         - docker
-
       
       python: 3.5
       env: TRAVIS_PYTHON_VERSION=3.5
@@ -67,7 +65,7 @@ before_install:
 
       else
       
-         if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+         if [[ "$TRAVIS_PYTHON_VERSION" == "2.7.16" ]]; then
 
            wget https://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh
            
