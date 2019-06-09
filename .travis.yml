@@ -21,12 +21,12 @@ matrix:
         - docker
 
       python: 2.7.16
-      env: TRAVIS_PYTHON_VERSION=2.7.16
+      env: TRAVIS_PYTHON_VERSION=2.7
 
            
     - os: osx
       python: 2.7.16
-      env: TRAVIS_PYTHON_VERSION=2.7.16
+      env: TRAVIS_PYTHON_VERSION=2.7
            
     - os: linux
       services:
