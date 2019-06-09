@@ -1170,6 +1170,7 @@ class GlobalMinimizer(Minimizer):
 
 
 # Check which minimizers are available
+from threeML.minimizer.minuit_minimizer import MinuitMinimizer
 
 try:
 
