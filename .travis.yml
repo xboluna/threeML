@@ -141,7 +141,7 @@ script:
 
       if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 
-        docker run -e TRAVIS_PYTHON_VERSION=TRAVIS_PYTHON_VERSION \
+        docker run -e TRAVIS_PYTHON_VERSION \
                    -e TRAVIS_BRANCH \
                    -e CONDA_UPLOAD_TOKEN \
                    -e TRAVIS_OS_NAME \
