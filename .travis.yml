@@ -20,13 +20,13 @@ matrix:
       services:
         - docker
 
-      python: 2.7
-      env: TRAVIS_PYTHON_VERSION=2.7
+      python: 2.7.16
+      env: TRAVIS_PYTHON_VERSION=2.7.16
 
            
     - os: osx
-      python: 2.7
-      env: TRAVIS_PYTHON_VERSION=2.7
+      python: 2.7.16
+      env: TRAVIS_PYTHON_VERSION=2.7.16
            
     - os: linux
       services:
@@ -143,7 +143,7 @@ script:
 
       if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 
-        docker run -e TRAVIS_PYTHON_VERSION=2.7 \
+        docker run -e TRAVIS_PYTHON_VERSION=TRAVIS_PYTHON_VERSION \
                    -e TRAVIS_BRANCH \
                    -e CONDA_UPLOAD_TOKEN \
                    -e TRAVIS_OS_NAME \
@@ -157,7 +157,6 @@ script:
       else
 
          chmod u+x ci/build_and_test.sh
-         export TRAVIS_PYTHON_VERSION=2.7
          ./ci/build_and_test.sh
 
       fi

@@ -39,7 +39,7 @@ requirements:
     - ipywidgets
     - ipython
     - ipyparallel
-    - py
+#    - py
 
   run:
     - python
@@ -63,8 +63,8 @@ requirements:
     - ipywidgets
     - ipython
     - ipyparallel
-    - xz
-    - py
+#    - xz
+#    - py
 
 
 
