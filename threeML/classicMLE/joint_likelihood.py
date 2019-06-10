@@ -690,7 +690,7 @@ class JointLikelihood(object):
                 figs.append( fig )
                 names.append( "%s-%s" % (param_1, param_2) )
               except Exception as e:
-                print e
+                print(e)
         return figs, names
 
 
