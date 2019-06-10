@@ -39,6 +39,7 @@ requirements:
     - ipywidgets
     - ipython
     - ipyparallel
+    - openssl
 
   run:
     - python
@@ -62,7 +63,7 @@ requirements:
     - ipywidgets
     - ipython
     - ipyparallel
-
+    - openssl
 
 
 
