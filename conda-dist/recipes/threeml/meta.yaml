@@ -14,11 +14,11 @@ requirements:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ compiler('fortran') }}
+    - numpy >=1.6
 #    - xspec-modelsonly-lite
 
   host:
     - python
-    #- toolchain
     - numpy >=1.6
     - scipy >=0.18
     - emcee
@@ -39,7 +39,6 @@ requirements:
     - ipywidgets
     - ipython
     - ipyparallel
-#    - py
 
   run:
     - python
@@ -63,8 +62,7 @@ requirements:
     - ipywidgets
     - ipython
     - ipyparallel
-#    - xz
-#    - py
+
 
 
 
