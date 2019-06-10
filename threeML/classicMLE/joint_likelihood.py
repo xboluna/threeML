@@ -624,7 +624,7 @@ class JointLikelihood(object):
         
         if nsteps_1d >= 0:
           for param in self._likelihood_model.free_parameters:
-            print param
+            
 
             center = res["value"][param]
             do_log = (False,)
