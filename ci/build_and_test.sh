@@ -36,11 +36,11 @@ conda config --add channels conda-forge
 
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 
-    # in the hawc docker container we have a configuration file
+    # # in the hawc docker container we have a configuration file
 
-    source ${SOFTWARE_BASE}/config_hawc.sh
-    source activate test_env
-    conda install -c conda-forge pytest codecov pytest-cov git --no-update-deps
+    # source ${SOFTWARE_BASE}/config_hawc.sh
+    # source activate test_env
+    # conda install -c conda-forge pytest codecov pytest-cov git --no-update-deps
 else
 
     # Activate test environment
