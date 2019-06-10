@@ -647,7 +647,7 @@ class JointLikelihood(object):
               figs.append( fig )
               names.append( param)
             except Exception as e:
-              print e
+              print(e)
 
         if nsteps_2d >= 0:
     
