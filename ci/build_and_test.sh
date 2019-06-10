@@ -36,11 +36,11 @@ conda config --add channels conda-forge
 
 if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 
-    # # in the hawc docker container we have a configuration file
+    # in the hawc docker container we have a configuration file
 
-    # source ${SOFTWARE_BASE}/config_hawc.sh
-    # source activate test_env
-    # conda install -c conda-forge pytest codecov pytest-cov git --no-update-deps
+    source ${SOFTWARE_BASE}/config_hawc.sh
+    source activate test_env
+    conda install -c conda-forge pytest codecov pytest-cov git --no-update-deps
 else
 
     # Activate test environment
@@ -88,17 +88,17 @@ export NUMEXPR_NUM_THREADS=1
 # we can actually import the HAWC plugin
 # We re-install cthreeML to make sure that it uses versions of boost compatible
 # with what is installed in the container
-# if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
 
-#     export CFLAGS="-m64 -I${CONDA_PREFIX}/include"
-#     export CXXFLAGS="-DBOOST_MATH_DISABLE_FLOAT128 -m64 -I${CONDA_PREFIX}/include"
-#     pip install git+https://github.com/threeML/cthreeML.git --no-deps --upgrade
+    export CFLAGS="-m64 -I${CONDA_PREFIX}/include"
+    export CXXFLAGS="-DBOOST_MATH_DISABLE_FLOAT128 -m64 -I${CONDA_PREFIX}/include"
+    pip install git+https://github.com/threeML/cthreeML.git --no-deps --upgrade
 
-#     # Make sure we can load the HAWC plugin
-#     python -c "from threeML.plugins.HAWCLike import HAWCLike"
-#     python -c "import os; print(os.environ['HAWC_3ML_TEST_DATA_DIR'])"
+    # Make sure we can load the HAWC plugin
+    python -c "from threeML.plugins.HAWCLike import HAWCLike"
+    python -c "import os; print(os.environ['HAWC_3ML_TEST_DATA_DIR'])"
 
-# fi
+fi
 
 python -m pytest -vv --cov=threeML
 
