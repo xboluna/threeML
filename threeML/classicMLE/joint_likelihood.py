@@ -670,7 +670,7 @@ class JointLikelihood(object):
             
               if param_2 <= param_1:
                 continue
-              print param_1, param_2
+              
               center_2 = res["value"][param_2]
               lower_2 = center_2 + res["negative_error"][param_2] * n_sigma
               upper_2 = center_2 + res["positive_error"][param_2] * n_sigma
