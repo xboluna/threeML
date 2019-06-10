@@ -27,16 +27,16 @@ matrix:
       python: 2.7.16
       env: TRAVIS_PYTHON_VERSION=2.7.16
            
-    - os: linux
-      services:
-        - docker
+    # - os: linux
+    #   services:
+    #     - docker
       
-      python: 3.5
-      env: TRAVIS_PYTHON_VERSION=3.5
+    #   python: 3.5
+    #   env: TRAVIS_PYTHON_VERSION=3.5
       
-    - os: osx
-      python: 3.5
-      env: TRAVIS_PYTHON_VERSION=3.5
+    # - os: osx
+    #   python: 3.5
+    #   env: TRAVIS_PYTHON_VERSION=3.5
            
 
 
