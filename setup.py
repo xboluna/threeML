@@ -135,7 +135,9 @@ setup(
         'requests',
         'speclite',
         'ipython<=5.9',
-        'numba'
+        'numba',
+        'dynesty',
+        'nestle'
     ],
 
     extras_require={
