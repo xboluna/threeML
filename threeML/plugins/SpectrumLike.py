@@ -307,7 +307,7 @@ class SpectrumLike(PluginPrototype):
                     observation_noise_model = 'poisson'
                     background_noise_model = 'poisson'
 
-
+                    self._background_counts = self._background_counts.astype(np.int64)
 
                     assert np.all(self._observed_counts >= 0), "Error in PHA: negative counts!"
 
