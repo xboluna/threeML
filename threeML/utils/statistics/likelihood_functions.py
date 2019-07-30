@@ -133,7 +133,7 @@ def poisson_observed_poisson_background(observed_counts, background_counts, expo
     # Nuisance parameter for Poisson likelihood
     # NOTE: B_mle is zero when b is zero!
 
-    n = len(o)
+    n = len(expected_model_counts)
 
     for idx in range(n):
 
