@@ -591,7 +591,7 @@ class BayesianAnalysis(object):
 
             min_ess = kwargs.pop('min_ess', 400)
             frac_remain = kwargs.pop('frac_remain', 0.01)
-            dlogz = kwargs.pop('dlogz',0.5)
+            dlogz = kwargs.pop('dlogz', 0.5)
             max_iter = kwargs.pop('max_iter',0.)
             
             
@@ -1151,14 +1151,16 @@ class BayesianAnalysis(object):
 
             # NOTE: the _log_like function DOES NOT assign trial_values to the parameters
 
-            log_likes = np.zeros(len(trial_values))
+            n = len(trial_values)
+            
+            log_likes = np.zeros(n)
 
-            for i in range(len(trial_values)):
+            for i in range(n):
             
                 for j, parameter in enumerate(self._free_parameters.values()):
                     parameter.value = trial_values[i, j]
 
-                    log_likes[i] = self._log_like(trial_values[i, :])
+                log_likes[i] = self._log_like(trial_values[i, :])
 
                 if self.verbose:
                     n_par = len(self._free_parameters)

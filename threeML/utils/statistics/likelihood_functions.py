@@ -159,11 +159,12 @@ def poisson_observed_poisson_background(observed_counts, background_counts, expo
 def poisson_observed_gaussian_background(observed_counts, background_counts, background_error, expected_model_counts):
 
     # This loglike assume Gaussian errors on the background and Poisson uncertainties on the
-    # observed counts. It is a profile likelihood.
 
-    log_likes = np.empty_like(expected_model_counts, dtype=np.float64)
-    b = np.empty_like(expected_model_counts, dtype=np.float64)
-    n = len(background_counts)
+    n = len(background_counts)# observed counts. It is a profile likelihood.
+
+    log_likes = np.empty(n, dtype=np.float64)
+    b = np.empty(n, dtype=np.float64)
+    
 
     for idx in range(n):
 
