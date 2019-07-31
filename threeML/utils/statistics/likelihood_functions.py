@@ -127,13 +127,15 @@ def poisson_observed_poisson_background(observed_counts, background_counts, expo
     #o = observed_counts
     # M = expected_model_counts
 
-    loglike = np.empty_like(expected_model_counts, dtype=np.float64)
-    B_mle = np.empty_like(expected_model_counts, dtype=np.float64)
+    n = len(expected_model_counts)
+    
+    loglike = np.empty(n, dtype=np.float64)
+    B_mle = np.empty(n, dtype=np.float64)
 
     # Nuisance parameter for Poisson likelihood
     # NOTE: B_mle is zero when b is zero!
 
-    n = len(expected_model_counts)
+
 
     for idx in range(n):
 
