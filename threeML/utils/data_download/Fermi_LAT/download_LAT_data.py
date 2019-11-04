@@ -1,4 +1,4 @@
-import HTMLParser
+from html.parser import HTMLParser
 import re
 import socket
 import time
@@ -18,14 +18,14 @@ from threeML.io.download_from_http import ApacheDirectory
 socket.setdefaulttimeout(120)
 
 
-class DivParser(HTMLParser.HTMLParser):
+class DivParser(HTMLParser):
     """
     Extract data from a <div></div> tag
     """
 
     def __init__(self, desiredDivName):
 
-        HTMLParser.HTMLParser.__init__(self)
+        HTMLParser.__init__(self)
 
         self.recording = 0
         self.data = []

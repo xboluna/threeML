@@ -3,7 +3,7 @@ import shutil
 import re
 import pkg_resources
 import yaml
-import urlparse
+import urllib.parse as urlparse
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 
@@ -336,7 +336,8 @@ class Config(object):
     @staticmethod
     def _remove_type(d):
 
-        return dict(map(lambda (key, value): (key.split("(")[0].rstrip(), value), d.items()))
+        #return dict(map(lambda (key, value): (key.split("(")[0].rstrip(), value), d.items()))
+        return dict([ ( key.split("(")[0].rstrip(), value) for key, value in  d.items()])
 
     def _get_copy_with_no_types(self, multilevelDict):
 
