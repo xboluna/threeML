@@ -98,8 +98,16 @@ class XYLike(PluginPrototype):
 
         y = function(x)
 
-        xyl_gen = XYLike("generator", x, y, yerr, **kwargs)
+        if yerr is not None:
+        
+            xyl_gen = XYLike("generator", x, y, yerr, **kwargs)
 
+        else:
+
+            xyl_gen = XYLike("generator", x, y, poisson_data=True, **kwargs)
+
+            
+            
         pts = PointSource("fake", 0.0, 0.0, function)
 
         model = Model(pts)

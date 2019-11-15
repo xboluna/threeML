@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import re
-import urllib2
+import urllib3
 
 import astropy.table as astro_table
 

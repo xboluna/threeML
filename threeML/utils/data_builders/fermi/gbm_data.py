@@ -22,63 +22,72 @@ class GBMTTEFile(object):
 
         """
 
+
         tte = fits.open(ttefile)
 
-        self._events = tte['EVENTS'].data['TIME']
-        self._pha = tte['EVENTS'].data['PHA']
-
-        # the GBM TTE data are not always sorted in TIME.
-        # we will now do this for you. We should at some
-        # point check with NASA if this is on purpose.
-
-
-        # but first we must check that there are NO duplicated events
-        # and then warn the user
-
-        if not len(self._events) == len(np.unique(self._events)):
-
-
-            warnings.warn('The TTE file %s contains duplicate time tags and is thus invalid. Contact the FSSC ' % ttefile)
-
+        extension = 'EVENTS'
         
-        
-        # sorting in time
-        sort_idx = self._events.argsort()
+        with fits.open(ttefile) as tte:
+            
+            
+            self._events = tte['EVENTS'].data['TIME']
+            self._pha = tte['EVENTS'].data['PHA']
+
+            # the GBM TTE data are not always sorted in TIME.
+            # we will now do this for you. We should at some
+            # point check with NASA if this is on purpose.
 
 
-        if not np.alltrue(self._events[sort_idx] == self._events):
-        
-            # now sort both time and energy
-            warnings.warn('The TTE file %s was not sorted in time but contains no duplicate events. We will sort the times, but use caution with this file. Contact the FSSC.')
-            self._events = self._events[sort_idx]
-            self._pha = self._pha[sort_idx]
-        
-        
-        try:
-            self._trigger_time = tte['PRIMARY'].header['TRIGTIME']
+            # but first we must check that there are NO duplicated events
+            # and then warn the user
+
+            if not len(self._events) == len(np.unique(self._events)):
 
 
-        except:
+                warnings.warn('The TTE file %s contains duplicate time tags and is thus invalid. Contact the FSSC ' % ttefile)
 
-            # For continuous data
-            warnings.warn("There is no trigger time in the TTE file. Must be set manually or using MET relative times.")
 
-            self._trigger_time = 0
 
-        self._start_events = tte['PRIMARY'].header['TSTART']
-        self._stop_events = tte['PRIMARY'].header['TSTOP']
+            # sorting in time
+            sort_idx = self._events.argsort()
 
-        self._utc_start = tte['PRIMARY'].header['DATE-OBS']
-        self._utc_stop = tte['PRIMARY'].header['DATE-END']
 
-        self._n_channels = tte['EBOUNDS'].header['NAXIS2']
+            if not np.alltrue(self._events[sort_idx] == self._events):
 
-        self._det_name = "%s_%s" % (tte['PRIMARY'].header['INSTRUME'], tte['PRIMARY'].header['DETNAM'])
+                # now sort both time and energy
+                warnings.warn('The TTE file %s was not sorted in time but contains no duplicate events. We will sort the times, but use caution with this file. Contact the FSSC.')
+                self._events = self._events[sort_idx]
+                self._pha = self._pha[sort_idx]
 
-        self._telescope = tte['PRIMARY'].header['TELESCOP']
+
+            try:
+                self._trigger_time = tte[extension].header['TRIGTIME']
+
+
+            except:
+
+                # For continuous data
+                warnings.warn("There is no trigger time in the TTE file. Must be set manually or using MET relative times.")
+
+                self._trigger_time = 0
+
+            self._start_events = tte[extension].header['TSTART']
+            self._stop_events = tte[extension].header['TSTOP']
+
+            self._utc_start = tte[extension].header['DATE-OBS']
+            self._utc_stop = tte[extension].header['DATE-END']
+
+            self._n_channels = tte['EBOUNDS'].header['NAXIS2']
+
+            self._det_name = "%s_%s" % (tte[extension].header['INSTRUME'], tte[extension].header['DETNAM'])
+
+            self._telescope = tte[extension].header['TELESCOP']
 
         self._calculate_deadtime()
 
+    
+
+        
     @property
     def trigger_time(self):
 
