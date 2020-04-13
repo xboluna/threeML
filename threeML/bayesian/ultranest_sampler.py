@@ -20,7 +20,6 @@ else:
     has_ultranest = True
 
 
-
 try:
 
     # see if we have mpi and/or are using parallel
@@ -42,14 +41,21 @@ except:
 
 
 class UltraNestSampler(UnitCubeSampler):
-
     def __init__(self, likelihood_model=None, data_list=None, **kwargs):
 
         assert has_ultranest, "You must install UltraNest to use this sampler"
-        
+
         super(UltraNestSampler, self).__init__(likelihood_model, data_list, **kwargs)
 
-    def setup(self, min_num_live_points=400, dlogz=0.5, chain_name=None, wrapped_params=None, **kwargs):
+    def setup(
+        self,
+        min_num_live_points=400,
+        dlogz=0.5,
+        chain_name=None,
+        wrapped_params=None,
+        resume="subfolder",
+        **kwargs
+    ):
 
         self._kwargs = {}
         self._kwargs["min_num_live_points"] = min_num_live_points
@@ -57,7 +63,7 @@ class UltraNestSampler(UnitCubeSampler):
         self._kwargs["chain_name"] = chain_name
 
         self._wrapped_params = wrapped_params
-        
+        self._resume = resume
         for k, v in kwargs.items():
 
             self._kwargs[k] = v
@@ -93,36 +99,6 @@ class UltraNestSampler(UnitCubeSampler):
         # create one
 
         chain_name = self._kwargs.pop("chain_name")
-        if chain_name is not None:
-            mcmc_chains_out_dir = ""
-            tmp = chain_name.split("/")
-            for s in tmp[:-1]:
-                mcmc_chains_out_dir += s + "/"
-
-            if using_mpi:
-
-                # if we are running in parallel and this is not the
-                # first engine, then we want to wait and let everything finish
-
-                if rank != 0:
-
-                    # let these guys take a break
-                    time.sleep(1)
-
-                else:
-
-                    # create mcmc chains directory only on first engine
-
-                    if not os.path.exists(mcmc_chains_out_dir):
-                        os.makedirs(mcmc_chains_out_dir)
-
-            else:
-
-                if not os.path.exists(mcmc_chains_out_dir):
-                    os.makedirs(mcmc_chains_out_dir)
-
-        # Multinest must be run parallel via an external method
-        # see the demo in the examples folder!!
 
         if threeML_config["parallel"]["use-parallel"]:
 
@@ -138,7 +114,8 @@ class UltraNestSampler(UnitCubeSampler):
                 transform=ultranest_prior,
                 log_dir=chain_name,
                 vectorized=False,
-                wrapped_params=self._wrapped_params
+                resume=self._resume,
+                wrapped_params=self._wrapped_params,
             )
 
             sampler.run(show_status=loud, **self._kwargs)
@@ -175,15 +152,14 @@ class UltraNestSampler(UnitCubeSampler):
 
             self._sampler = sampler
 
-            ws = results['weighted_samples']
+            ws = results["weighted_samples"]
 
-            weights = ws['w']
+            weights = ws["w"]
 
             # Get the log. likelihood values from the chain
 
-            SQRTEPS = (float(np.finfo(np.float64).eps))**0.5
-            if abs(np.sum(weights) -
-                   1.) > SQRTEPS:  # same tol as in np.random.choice.
+            SQRTEPS = (float(np.finfo(np.float64).eps)) ** 0.5
+            if abs(np.sum(weights) - 1.0) > SQRTEPS:  # same tol as in np.random.choice.
                 raise ValueError("weights do not sum to 1")
 
             rstate = np.random
@@ -203,9 +179,9 @@ class UltraNestSampler(UnitCubeSampler):
                 else:
                     j += 1
 
-            self._log_like_values = ws['L'][idx]
+            self._log_like_values = ws["L"][idx]
 
-            self._raw_samples = ws['v'][idx]
+            self._raw_samples = ws["v"][idx]
 
             # now get the log probability
 
