@@ -52,6 +52,7 @@ requirements:
     - py
     - tk==8.5.19 # [py2k]
     - ipopt<3.13 # [py2k]
+    - numdifftools 
     
     
   run:
@@ -88,6 +89,7 @@ requirements:
     - pytest # [py3k]
     - numexpr
     - ipopt<3.13 # [py2k]
+    - numdifftools 
 
 #test:
 #  # Python imports
