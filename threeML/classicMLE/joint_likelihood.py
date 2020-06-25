@@ -25,6 +25,8 @@ from threeML.parallel.parallel_client import ParallelClient
 from threeML.utils.statistics.stats_tools import aic, bic
 
 
+import pdb
+
 class ReducingNumberOfThreads(Warning):
     pass
 
@@ -38,7 +40,7 @@ class NotANumberInLikelihood(Warning):
 
 
 class JointLikelihood(object):
-    def __init__(self, likelihood_model, data_list, verbose=False, record=True):
+    def __init__(self, likelihood_model, data_list, source_names=None, verbose=False, record=True):
         """
         Implement a joint likelihood analysis.
 
@@ -50,6 +52,8 @@ class JointLikelihood(object):
         :return:
         """
 
+        print('')
+
         self._analysis_type = "mle"
 
         # Process optional keyword parameters
@@ -58,6 +62,9 @@ class JointLikelihood(object):
         self._likelihood_model = likelihood_model  # type: astromodels.core.model.Model
 
         self._data_list = data_list
+        
+        if source_names is not None:
+            self._assign_data_to_source(self._likelihood_model, source_names)
 
         self._assign_model_to_data(self._likelihood_model)
 
@@ -119,6 +126,32 @@ class JointLikelihood(object):
 
                 self._likelihood_model.add_external_parameter(parameter)
 
+    @classmethod
+    def _assign_data_to_source(self, model, source_names):
+        """
+        Assign these data to the given source (instead of to the sum of all sources, which is the default)
+        
+        :param model: likelihood model
+        :param source_name: name of the source (must be contained in the likelihood model)
+        :return: none
+        """
+
+        if model is not None and source_names is not None:
+
+            self._source_names = []
+
+            for source in source_names:
+
+                assert source in model.point_sources, (
+                    "Source %s is not a point source in "
+                    "the likelihood model" % source
+                )
+                assert source not in self._source_names, (
+                    "Source %s is already in defined point sources"%source
+                )
+                self._source_names.append(source)
+
+        
     @property
     def likelihood_model(self):
         """
@@ -315,6 +348,8 @@ class JointLikelihood(object):
         # sum up the total number of data points
 
         total_number_of_data_points = 0
+
+        pdb.set_trace()
 
         for dataset in list(self._data_list.values()):
 
