@@ -347,9 +347,7 @@ class JointLikelihood(object):
 
         # sum up the total number of data points
 
-        total_number_of_data_points = 0
-
-        pdb.set_trace()
+        total_number_of_data_points = 0 
 
         for dataset in list(self._data_list.values()):
 
@@ -483,6 +481,10 @@ class JointLikelihood(object):
                  grid. If param_2_steps is None (only one parameter), then this reduces to an array of
                  size param_1_steps.
         """
+        if param2 is not None:
+            print('CALLING :: param1 :: %s :: %s :: %s :: %s :: param2 :: %s :: %s :: %s :: %s' %(param_1,param_1_minimum,param_1_maximum,param_1_n_steps,param_2,param_2_minimum,param_2_maximum,param_2_n_steps))
+        else:
+            print('CALLING :: param1 :: %s :: %s :: %s :: %s'%(param_1,param_1_minimum,param_1_maximum,param_1_n_steps))
 
         if hasattr(param_1, "value"):
 
@@ -1063,13 +1065,14 @@ class JointLikelihood(object):
 
         return table
 
-    def _plot_profile(self, name1, a, cc):
+    def _plot_profile(self, name1, a, cc, savePlot = True):
         """
         Plot the likelihood profile.
 
         :param name1: Name of parameter
         :param a: grid for the parameter
         :param cc: log. likelihood values for the parameter
+        :param savePlot: boolean for in-situ packaging and saving of plot
         :return: a figure containing the likelihood profile
         """
 
@@ -1142,9 +1145,13 @@ class JointLikelihood(object):
 
         plt.tight_layout()
 
+        if(savePlot):
+            plt.savefig('%s_profile.png'%name1)
+
+
         return fig
 
-    def _plot_contours(self, name1, a, name2, b, cc):
+    def _plot_contours(self, name1, a, name2, b, cc, savePlot = True):
         """
         Make a contour plot.
 
@@ -1224,6 +1231,9 @@ class JointLikelihood(object):
         sub.set_ylabel(name1)
 
         plt.tight_layout()
+
+        if(savePlot):
+            plt.savefig('%s_profile.png'%name1)
 
         return fig
 
