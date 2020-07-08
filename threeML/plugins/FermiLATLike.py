@@ -37,11 +37,13 @@ class MyPointSource(LikelihoodComponent.GenericSource):
 
 
 class LikelihoodModelConverter(object):
-    def __init__(self, likelihoodModel, irfs):
+    def __init__(self, likelihoodModel, irfs, sourceName = None):
 
         self.likelihoodModel = likelihoodModel
 
         self.irfs = irfs
+
+        self._source_name = sourceName
 
     def setFileSpectrumEnergies(self, emin_kev, emax_kev, nEnergies):
 
@@ -58,22 +60,37 @@ class LikelihoodModelConverter(object):
 
         allSourcesForPyLike = []
         temp_files = []
+        
+        #Flag for whether we are attributing the dataset to a single source in the model
+        sourceName = self._source_name
+        if sourceName is None:
 
-        nPtsrc = self.likelihoodModel.get_number_of_point_sources()
+            nPtsrc = self.likelihoodModel.get_number_of_point_sources()
 
-        for ip in range(nPtsrc):
+            for ip in range(nPtsrc):
 
-            this_src = self._makeFileSpectrum(ip)
+                this_src = self._makeFileSpectrum(ip)
 
+                allSourcesForPyLike.append(this_src)
+                temp_files.append(this_src.temp_file)
+
+            # Now the same for extended sources
+
+            nExtSrc = self.likelihoodModel.get_number_of_extended_sources()
+
+            if nExtSrc > 0:
+                raise NotImplemented("Cannot support extended sources yet!")
+        else:
+            #We pass from the model just one source
+             
+            print('Setting single point source %s ... '%sourceName)
+
+            index = self.likelihoodModel.point_sources.keys().index(sourceName)
+            this_src = self._makeFileSpectrum(index)
             allSourcesForPyLike.append(this_src)
+
             temp_files.append(this_src.temp_file)
 
-        # Now the same for extended sources
-
-        nExtSrc = self.likelihoodModel.get_number_of_extended_sources()
-
-        if nExtSrc > 0:
-            raise NotImplemented("Cannot support extended sources yet!")
 
         iso = LikelihoodComponent.IsotropicTemplate(self.irfs)
 
@@ -279,21 +296,23 @@ class FermiLATLike(PluginPrototype):
 
     pass
 
-    def set_model(self, likelihoodModel):
+    def set_model(self, likelihoodModel, sourceName = None):
         """
         Set the model to be used in the joint minimization.
         Must be a LikelihoodModel instance.
         """
 
-        with suppress_stdout():
+        #with suppress_stdout():
 
-            self.lmc = LikelihoodModelConverter(likelihoodModel, self.irf)
+        self.lmc = LikelihoodModelConverter(likelihoodModel, self.irf, sourceName=sourceName)
+        if sourceName is not None:
+            self._source_name = sourceName
 
-            self.lmc.setFileSpectrumEnergies(self.emin, self.emax, self.Nenergies)
+        self.lmc.setFileSpectrumEnergies(self.emin, self.emax, self.Nenergies)
 
-            xmlFile = str("%s.xml" % get_random_unique_name())
+        xmlFile = str("%s.xml" % get_random_unique_name())
 
-            temp_files = self.lmc.writeXml(xmlFile, self.ra, self.dec, self.rad)
+        temp_files = self.lmc.writeXml(xmlFile, self.ra, self.dec, self.rad)
 
         if self.kind == "BINNED":
             self.like = BinnedAnalysis.BinnedAnalysis(
@@ -358,13 +377,39 @@ class FermiLATLike(PluginPrototype):
         """
 
         energies = self.lmc.energiesKeV
+ 
+        if self._source_name is None:
+            for id, srcName in enumerate(self.likelihoodModel.point_sources.keys()):
 
-        for id, srcName in enumerate(self.likelihoodModel.point_sources.keys()):
+                values = self.likelihoodModel.get_point_source_fluxes(
+                    id, energies, tag=self._tag
+                )
+
+                #on the second iteration, self.like doesn't have the second srcName defined so that needs to be carried from flags
+                gtlikeSrcModel = self.like[srcName]
+
+                my_function = gtlikeSrcModel.getSrcFuncs()["Spectrum"]
+                my_file_function = pyLike.FileFunction_cast(my_function)
+
+                my_file_function.setParam("Normalization", 1)
+
+                # Cap the values to avoid numerical errors
+
+                capped_values = numpy.minimum(numpy.maximum(values * 1000, 1e-25), 1e5)
+
+                my_file_function.setSpectrum(energies / 1000.0, capped_values)
+                gtlikeSrcModel.setSpectrum(my_file_function)
+
+                # TODO: extended sources
+        else:
+            srcName = self._source_name
+            id = self.likelihoodModel.point_sources.keys().index(srcName)
 
             values = self.likelihoodModel.get_point_source_fluxes(
-                id, energies, tag=self._tag
+                    id, energies, tag=self._tag
             )
 
+            #on the second iteration, self.like doesn't have the second srcName defined so that needs to be carried from flags
             gtlikeSrcModel = self.like[srcName]
 
             my_function = gtlikeSrcModel.getSrcFuncs()["Spectrum"]
@@ -379,7 +424,6 @@ class FermiLATLike(PluginPrototype):
             my_file_function.setSpectrum(energies / 1000.0, capped_values)
             gtlikeSrcModel.setSpectrum(my_file_function)
 
-            # TODO: extended sources
 
         self.like.syncSrcParams()
 
