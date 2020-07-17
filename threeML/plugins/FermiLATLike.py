@@ -63,6 +63,7 @@ class LikelihoodModelConverter(object):
         
         #Flag for whether we are attributing the dataset to a single source in the model
         sourceName = self._source_name
+       
         if sourceName is None:
 
             nPtsrc = self.likelihoodModel.get_number_of_point_sources()
@@ -320,7 +321,7 @@ class FermiLATLike(PluginPrototype):
             )
 
         else:
-
+            #import pdb;pdb.set_trace()
             self.like = UnbinnedAnalysis.UnbinnedAnalysis(
                 self.obs, xmlFile, optimizer="DRMNFB"
             )
@@ -384,7 +385,7 @@ class FermiLATLike(PluginPrototype):
                 values = self.likelihoodModel.get_point_source_fluxes(
                     id, energies, tag=self._tag
                 )
-
+                import pdb;pdb.set_trace()
                 #on the second iteration, self.like doesn't have the second srcName defined so that needs to be carried from flags
                 gtlikeSrcModel = self.like[srcName]
 
