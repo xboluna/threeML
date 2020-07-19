@@ -213,6 +213,7 @@ class FermiLATLike(PluginPrototype):
         exposureMap=None,
         sourceMaps=None,
         binnedExpoMap=None,
+        source_name = None,
     ):
 
         # Initially the nuisance parameters dict is empty, as we don't know yet
@@ -295,6 +296,11 @@ class FermiLATLike(PluginPrototype):
         # Activate inner minimization by default
         self.setInnerMinimization(True)
 
+        if source_name is not None:
+            self._source_name = source_name
+        else:
+            self._source_name = None
+
     pass
 
     def set_model(self, likelihoodModel, sourceName = None):
@@ -305,10 +311,15 @@ class FermiLATLike(PluginPrototype):
 
         #with suppress_stdout():
 
-        self.lmc = LikelihoodModelConverter(likelihoodModel, self.irf, sourceName=sourceName)
-        if sourceName is not None:
-            self._source_name = sourceName
+        
+        if self._source_name is not None:
+            if (sourceName is not None) and (sourceName != self._source_name):
+                print('Warning! Changing target source from %s to %s'%(self._source_name, sourceName))
+                self._source_name = sourceName
 
+            assert self._source_name in likelihoodModel.point_sources, ('Source %s is not a source in the likelihood model! '%self._source_name)
+
+        self.lmc = LikelihoodModelConverter(likelihoodModel, self.irf, sourceName=self._source_name)
         self.lmc.setFileSpectrumEnergies(self.emin, self.emax, self.Nenergies)
 
         xmlFile = str("%s.xml" % get_random_unique_name())
@@ -385,7 +396,7 @@ class FermiLATLike(PluginPrototype):
                 values = self.likelihoodModel.get_point_source_fluxes(
                     id, energies, tag=self._tag
                 )
-                import pdb;pdb.set_trace()
+                
                 #on the second iteration, self.like doesn't have the second srcName defined so that needs to be carried from flags
                 gtlikeSrcModel = self.like[srcName]
 
