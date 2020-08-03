@@ -357,6 +357,13 @@ class FermiLATLike(PluginPrototype):
 
         self.update_nuisance_parameters(new_nuisance_parameters)
 
+    def clear_source_name(self):
+        if self._source_name is not None:
+            print('Clearing %s as a source for this plugin.'%self._source_name)
+            self._source_name = None
+        else:
+            print('Source not named. Use set_model to set a source.')
+
     def get_name(self):
         """
         Return a name for this dataset (likely set during the constructor)
