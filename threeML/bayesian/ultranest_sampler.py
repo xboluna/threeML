@@ -183,7 +183,7 @@ class UltraNestSampler(UnitCubeSampler):
 
             ws = results["weighted_samples"]
 
-            weights = ws["weights"]
+            weights = ws["w"]
 
             # Get the log. likelihood values from the chain
 
@@ -208,10 +208,9 @@ class UltraNestSampler(UnitCubeSampler):
                 else:
                     j += 1
 
-            #import pdb;pdb.set_trace()
-            self._log_like_values = ws["logl"][idx]
+            self._log_like_values = ws["L"][idx]
 
-            self._raw_samples = ws["points"][idx]
+            self._raw_samples = ws["v"][idx]
 
             # now get the log probability
 
