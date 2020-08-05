@@ -37,13 +37,18 @@ class MyPointSource(LikelihoodComponent.GenericSource):
 
 
 class LikelihoodModelConverter(object):
-    def __init__(self, likelihoodModel, irfs, sourceName = None):
+    def __init__(self, likelihoodModel, irfs, source_name = None):
+        """
+        :param likelihoodModel: likelihood model
+        :param source_name: name of source (must be contained in likelihood model)
+        :return: none
+        """
 
         self.likelihoodModel = likelihoodModel
 
         self.irfs = irfs
 
-        self._source_name = sourceName
+        self._source_name = source_name
 
     def setFileSpectrumEnergies(self, emin_kev, emax_kev, nEnergies):
 
@@ -75,12 +80,6 @@ class LikelihoodModelConverter(object):
                 allSourcesForPyLike.append(this_src)
                 temp_files.append(this_src.temp_file)
 
-            # Now the same for extended sources
-
-            nExtSrc = self.likelihoodModel.get_number_of_extended_sources()
-
-            if nExtSrc > 0:
-                raise NotImplemented("Cannot support extended sources yet!")
         else:
             #We pass from the model just one source
              
@@ -92,6 +91,11 @@ class LikelihoodModelConverter(object):
 
             temp_files.append(this_src.temp_file)
 
+
+        # Now the same for extended sources
+        nExtSrc = self.likelihoodModel.get_number_of_extended_sources()
+        if nExtSrc > 0:
+            raise NotImplemented("Cannot support extended sources yet!")
 
         iso = LikelihoodComponent.IsotropicTemplate(self.irfs)
 
@@ -303,23 +307,25 @@ class FermiLATLike(PluginPrototype):
 
     pass
 
-    def set_model(self, likelihoodModel, sourceName = None):
+    def set_model(self, likelihoodModel, source_name = None):
         """
         Set the model to be used in the joint minimization.
         Must be a LikelihoodModel instance.
+
+        This method can also set or override a previously set source name.
         """
 
         #with suppress_stdout():
 
         
         if self._source_name is not None:
-            if (sourceName is not None) and (sourceName != self._source_name):
-                print('Warning! Changing target source from %s to %s'%(self._source_name, sourceName))
-                self._source_name = sourceName
+            if (source_name is not None) and (source_name != self._source_name):
+                print('Warning! Changing target source from %s to %s'%(self._source_name, source_name))
+                self._source_name = source_name
 
             assert self._source_name in likelihoodModel.point_sources, ('Source %s is not a source in the likelihood model! '%self._source_name)
 
-        self.lmc = LikelihoodModelConverter(likelihoodModel, self.irf, sourceName=self._source_name)
+        self.lmc = LikelihoodModelConverter(likelihoodModel, self.irf, source_name=self._source_name)
         self.lmc.setFileSpectrumEnergies(self.emin, self.emax, self.Nenergies)
 
         xmlFile = str("%s.xml" % get_random_unique_name())

@@ -25,8 +25,6 @@ from threeML.parallel.parallel_client import ParallelClient
 from threeML.utils.statistics.stats_tools import aic, bic
 
 
-import pdb
-
 class ReducingNumberOfThreads(Warning):
     pass
 
@@ -52,8 +50,6 @@ class JointLikelihood(object):
         :return:
         """
 
-        print('')
-
         self._analysis_type = "mle"
 
         # Process optional keyword parameters
@@ -63,9 +59,6 @@ class JointLikelihood(object):
 
         self._data_list = data_list
         
-        if source_names is not None:
-            self._assign_data_to_source(self._likelihood_model, source_names)
-
         self._assign_model_to_data(self._likelihood_model)
 
         # This is to keep track of the number of calls to the likelihood
@@ -125,31 +118,6 @@ class JointLikelihood(object):
                 )
 
                 self._likelihood_model.add_external_parameter(parameter)
-
-    @classmethod
-    def _assign_data_to_source(self, model, source_names):
-        """
-        Assign these data to the given source (instead of to the sum of all sources, which is the default)
-        
-        :param model: likelihood model
-        :param source_name: name of the source (must be contained in the likelihood model)
-        :return: none
-        """
-
-        if model is not None and source_names is not None:
-
-            self._source_names = []
-
-            for source in source_names:
-
-                assert source in model.point_sources, (
-                    "Source %s is not a point source in "
-                    "the likelihood model" % source
-                )
-                assert source not in self._source_names, (
-                    "Source %s is already in defined point sources"%source
-                )
-                self._source_names.append(source)
 
         
     @property
@@ -481,8 +449,6 @@ class JointLikelihood(object):
                  grid. If param_2_steps is None (only one parameter), then this reduces to an array of
                  size param_1_steps.
         """
-
-        print('Entering contour plot ...')
 
         if hasattr(param_1, "value"):
 
@@ -1072,8 +1038,6 @@ class JointLikelihood(object):
         :param cc: log. likelihood values for the parameter
         :return: a figure containing the likelihood profile
         """
-
-        print('Plotting 1D profile ...')
         
         # plot 1,2 and 3 sigma horizontal lines
 
